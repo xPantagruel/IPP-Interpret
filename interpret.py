@@ -1,6 +1,9 @@
+from xmlParser import xmlparse
+from argParser import ArgParse
 
 def main():
-    print('Hello World')
+    xmlparse()
+    ArgParse()
     
 if __name__ == '__main__':
     main()
