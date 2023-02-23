@@ -1,29 +1,42 @@
 import argparse
 import sys
+import os
 
 class ArgParse:
-    if len(sys.argv) != 2:
-        exit(10)#todo check if this is correct
-    elif sys.argv[1] == "--help":
-        print("Help description of your program")
-    elif sys.argv[1] == "--source":
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(description='Popis programu.')
+        self.parser.add_argument('--source', metavar='file',type = str, help='Vstupní soubor s XML reprezentací zdrojového kódu.')
+        self.parser.add_argument('--input', metavar='file',type = str, help='Soubor se vstupy pro interpretaci zadaného zdrojového kódu.')
+        self.args = self.parser.parse_args()
         
-    elif sys.argv[1] == "--input":
+    def run(self):
+        if self.args.source is None and self.args.input is None:
+            exit(10)
+
+        if self.args.source:
+            with open(self.args.source, 'r') as f:
+                source_data = f.read()
+        else:
+            source_data = sys.stdin.read()
+
+        if self.args.input:
+            with open(self.args.input, 'r') as f:
+                input_data = f.read()
+        else:
+            input_data = sys.stdin.read()
+
+        #kontrola zda jsou spravne nazvy souboru
+        if self.args.source:
+            if not os.path.exists(self.args.source):
+                exit(11)
+        if self.args.input:
+            if not os.path.exists(self.args.input):
+                exit(11)
                 
-                
-    
-        
-    
-    
-    # parser = argparse.ArgumentParser(description='Description of your program')
-
-    # # --help option
-    # parser.add_argument('--help', action='store_true', help='Help description of your program')
-
-    # # --source option
-    # parser.add_argument('--source', type=str, metavar='file', help='Input file with XML representation of source code according to section 3.1 and additional definition in section 4')
-
-    # # --input option
-    # parser.add_argument('--input', type=str, metavar='file', help='Input file with inputs for the interpretation of the source code')
-
-    # args = parser.parse_args()
+        # #kontrola zda jsou spravne pripony
+        # if self.args.source:
+        #     if self.args.source[-3:] != 'xml':
+        #         exit(31)
+        # if self.args.input:
+        #     if self.args.input[-3:] != 'src':
+        #         exit(31)
