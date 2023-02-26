@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <program language="IPPcode23">
- <instruction order="1" opcode="MOVE">
+ <instruction order="4" opcode="DEFVAR">
   <arg1 type="var">GF@counter</arg1>
-  <arg2 type="int">0</arg2>
+ </instruction>
+ <instruction order="1" opcode="LABEL">
+  <arg1 type="label">ok</arg1>
+ </instruction>
+ <instruction order="3" opcode="LABEL">
+  <arg1 type="label">zz</arg1>
+ </instruction>
+  <instruction order="2" opcode="LABEL">
+  <arg1 type="label">zsz</arg1>
  </instruction>
 </program>
