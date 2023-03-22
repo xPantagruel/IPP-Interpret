@@ -1,4 +1,4 @@
-import xmlParser
+import sys
 
 class Stack:
     def __init__(self):
@@ -563,18 +563,111 @@ class Instructions:
         if Label not in self.LabelList:
             exit(52)
         else : 
-            self.NumberOfInstruction = self.LabelList[Label]
-            #todo set number of instruction to line of label.row
-            
-            
-    
+            self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+
+# JUMPIFEQ ⟨label⟩ ⟨symb1⟩ ⟨symb2⟩ Podmíněný skok na návěští při rovnosti
+# Pokud jsou ⟨symb1⟩ a ⟨symb2⟩ stejného typu nebo je některý operand nil (jinak chyba 53) a
+# zároveň se jejich hodnoty rovnají, tak provede skok na návěští ⟨label⟩.    
     def JUMPIFEQ(self):
-        pass
-    
-    def JUMPIFNEQ(self):
-        pass
-    
-    
-    
+        i = self.NumberOfInstruction
+        Label = self.Instructions[i].args[0]
+        symb1 = self.Instructions[i].args[1]
+        symb2 = self.Instructions[i].args[2]
         
+        # check if symb1 and symb2 are variables
+        if symb1.type == "var":
+            symb1 = self.VariablesList[self.PositionOfVar(symb1.value)]
+        
+        if symb2.type == "var":
+            symb2 = self.VariablesList[self.PositionOfVar(symb2.value)]
+        
+        if symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil":
+            if symb1.type == "string":
+                if symb1.value == symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "bool":
+                if symb1.value == symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "int":
+                if symb1.value == symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "nil":
+                if symb2.type == "nil":
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+        else: 
+            exit(53)
+                
+    def JUMPIFNEQ(self):
+        i = self.NumberOfInstruction
+        Label = self.Instructions[i].args[0]
+        symb1 = self.Instructions[i].args[1]
+        symb2 = self.Instructions[i].args[2]
+        
+        # check if symb1 and symb2 are variables
+        if symb1.type == "var":
+            symb1 = self.VariablesList[self.PositionOfVar(symb1.value)]
+        
+        if symb2.type == "var":
+            symb2 = self.VariablesList[self.PositionOfVar(symb2.value)]
+        
+        if symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil":
+            if symb1.type == "string":
+                if symb1.value != symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "bool":
+                if symb1.value != symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "int":
+                if symb1.value != symb2.value:
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+            elif symb1.type == "nil":
+                if symb2.type != "nil":
+                    if Label not in self.LabelList:
+                        exit(52)
+                    else : 
+                        self.LabelList[self.Instructions[self.NumberOfInstruction].order].row - 1
+        else: 
+            exit(53)
+# DPRINT ⟨symb⟩ Výpis hodnoty na stderr
+# Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
+    def DPRINT(self) :
+        i = self.NumberOfInstruction
+        symb = self.Instructions[i].args[0]
+        
+        # check if symb1 and symb2 are variables
+        if symb.type == "var":
+            symb = self.VariablesList[self.PositionOfVar(symb.value)]
+        
+        print(symb.value, file=sys.stderr)
     
+# BREAK Výpis stavu interpretu na stderr
+# Předpokládá se, že na standardní chybový výstup (stderr) vypíše stav interpretu (např. pozice
+# v kódu, obsah rámců, počet vykonaných instrukcí) v danou chvíli (tj. během vykonávání této
+# instrukce).
+    def BREAK(self):
+        print("Pozice v kodu: ", self.NumberOfInstruction, file=sys.stderr)
+        print("Obsah ramcu: ", self.VariablesList, file=sys.stderr)
+        print("Pocet vykonanych instrukci: ", self.NumberOfInstruction, file=sys.stderr)
+        
+        
