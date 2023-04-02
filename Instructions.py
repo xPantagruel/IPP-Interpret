@@ -62,6 +62,7 @@ class Instructions:
     def InstructionExecution(self):
         self.InitializateLists()
         while self.NumberOfInstruction < len(self.Instructions):
+            print("self." + self.Instructions[self.NumberOfInstruction].opcode + "()")
             eval("self." + self.Instructions[self.NumberOfInstruction].opcode + "()")
             self.NumberOfInstruction += 1
             
@@ -85,13 +86,29 @@ class Instructions:
                   
             if(self.VariablesList[NumOfVar1].type == "nil"):
                 self.VariablesList[NumOfVar1].type = self.VariablesList[NumOfVar2].type
+                self.VariablesList[NumOfVar1].value = self.VariablesList[NumOfVar2].value
                 
             if(self.VariablesList[NumOfVar1].type != self.VariablesList[NumOfVar2].type):
                 exit(53)
                 
             if(self.Instructions[i].args[1].value == "nil"):
                 exit(56)
-
+        else: #move var symb
+            var = self.Instructions[i].args[0]
+            symb = self.Instructions[i].args[1]
+            
+            NumOfVar = self.PositionOfVar(var.value)
+            
+            if(self.VariablesList[NumOfVar].type == "nil"):
+                self.VariablesList[NumOfVar].type = symb.type
+                self.VariablesList[NumOfVar].value = symb.value
+                
+            if(self.VariablesList[NumOfVar].type != symb.type):
+                exit(53)
+                
+            if(symb.value == "nil"):
+                exit(56)
+                            
         # if(self.Instructions[i].args[0].type == "var" and self.Instructions[i].args[1].type == "symb"):
             # todo - check if var is defined
             
@@ -140,12 +157,13 @@ class Instructions:
         
         if symb2.type == "var":
             symb2 = self.VariablesList[self.PositionOfVar(symb2.value)]
-        
+
         if var.type == "var" and symb2.type == "int" and symb1.type == "int":
                 self.VariablesList[self.PositionOfVar(var.value)].type = "int"
-                self.VariablesList[self.PositionOfVar(var.value)].value = symb1.value + symb2.value
+                self.VariablesList[self.PositionOfVar(var.value)].value = int(symb1.value) + int(symb2.value)
         else: 
             exit(53)
+        print("log:" + str(self.VariablesList[self.PositionOfVar(var.value)].value))
                     
     def SUB(self):
         i = self.NumberOfInstruction
@@ -162,9 +180,13 @@ class Instructions:
         
         if var.type == "var" and symb2.type == "int" and symb1.type == "int":
                 self.VariablesList[self.PositionOfVar(var.value)].type = "int"
-                self.VariablesList[self.PositionOfVar(var.value)].value = symb1.value - symb2.value
+                self.VariablesList[self.PositionOfVar(var.value)].value = int(symb1.value) - int(symb2.value)
         else: 
             exit(53)
+            
+        print("log:" + str(self.VariablesList[self.PositionOfVar(var.value)].value))
+            
+            
                     
     def MUL(self):
         i = self.NumberOfInstruction
@@ -178,13 +200,15 @@ class Instructions:
         
         if symb2.type == "var":
             symb2 = self.VariablesList[self.PositionOfVar(symb2.value)]
-        
+                    
         if var.type == "var" and symb2.type == "int" and symb1.type == "int":
                 self.VariablesList[self.PositionOfVar(var.value)].type = "int"
-                self.VariablesList[self.PositionOfVar(var.value)].value = symb1.value * symb2.value
+                self.VariablesList[self.PositionOfVar(var.value)].value = int(symb1.value) * int(symb2.value)
         else: 
             exit(53)
-    
+            
+        print("log:" + str(self.VariablesList[self.PositionOfVar(var.value)].value))
+
     def IDIV(self):
         i = self.NumberOfInstruction
         var = self.Instructions[i].args[0]
@@ -204,9 +228,11 @@ class Instructions:
         
         if var.type == "var" and symb2.type == "int" and symb1.type == "int":
                 self.VariablesList[self.PositionOfVar(var.value)].type = "int"
-                self.VariablesList[self.PositionOfVar(var.value)].value = int(symb1.value * symb2.value)
+                self.VariablesList[self.PositionOfVar(var.value)].value = int(symb1.value) // int(symb2.value)
         else: 
             exit(53)
+            
+        print("log:" + str(self.VariablesList[self.PositionOfVar(var.value)].value))
 #     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
 # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
 # string) a do ⟨var⟩ zapíše výsledek typu bool (false při neplatnosti nebo true v případě platnosti
