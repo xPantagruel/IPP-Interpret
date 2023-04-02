@@ -34,12 +34,12 @@ class Label:
 class Instructions:
     def __init__(self, Instructions):
         self.LabelList = []
-        self.VariablesList = []
+        self.VariablesList = [] 
         self.Instructions = Instructions
         self.FrameFlag = "none"
         self.stack = Stack()
-        self.TemporaryStack = Stack()
-        self.LocalStack = Stack()
+        self.TemporaryFrames = None
+        self.LocalStack = None
         self.NumberOfInstruction = 0
 
     def InitializateLists(self):
@@ -66,7 +66,7 @@ class Instructions:
             eval("self." + self.Instructions[self.NumberOfInstruction].opcode + "()")
             self.NumberOfInstruction += 1
             
-#-------------------------------------- SEMANTIC CHECK FUNCTIONS --------------------------------------
+#-------------------------------------- FUNCTIONS --------------------------------------
     def PositionOfVar(self, var):
         for i in range(len(self.VariablesList)):
             if self.VariablesList[i].name == var:
