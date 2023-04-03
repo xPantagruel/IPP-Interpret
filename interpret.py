@@ -1,6 +1,6 @@
 from xmlParser import InstructionParser
 from argParser import ArgParse
-from Instructions import Instructions
+from Core import Interpret
 def main():
     # create an instance of the ArgParse class and parse the command-line arguments
     argparser = ArgParse()
@@ -12,8 +12,8 @@ def main():
 
     # get the instructions from the InstructionParser instance
     instructionsList = xml_parser.get_instructions()
-    InstrExecution = Instructions(instructionsList)
-    InstrExecution.InstructionExecution()
+    InterpretInstance = Interpret(instructionsList)
+    InterpretInstance.Interpretation()
 
 if __name__ == '__main__':
     main()

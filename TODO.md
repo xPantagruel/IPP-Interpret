@@ -14,7 +14,11 @@ I should look at changing type of variable
         PUSHS
         POPS
         DEFVAR
+        MOVE
+        WRITE
+        ADD
+        SUB
+        LABEL
+        JUMP
 
-classes 
-- zabalit kazdou instrukci jako class ktera bude mit execution
-- vse se to bude volat z class interpret ktera bude mit v sobe instruction a ta v sobe bude mit instrukce jeste 
+- prepsat if v add a ostatnich do jedne funkce ze ktere bude navratovy hodnoty dve instance classy
