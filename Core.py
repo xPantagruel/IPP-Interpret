@@ -30,7 +30,7 @@ class Label:
         self.name = name
         self.value = value
         self.row = row
-
+#------------------------------- Class Interpret --------------------------------
 class Interpret():
     def __init__(self, Instructions):
         self.Instructions = Instructions
@@ -44,11 +44,6 @@ class Interpret():
                     self.LabelList.append(Label(self.Instructions[i].args[0].value, self.Instructions[i].args[0].value, i-1))
                 else:
                     exit(52)
-        # # #todo check if label is defined
-        # # for i in range(len(self.Instructions)):
-        # #     if self.Instructions[i].opcode in ("JUMP", "JUMPIFEQ", "JUMPIFNEQ"):
-        # #         if self.Instructions[i].args[0].value not in self.LabelList:
-        # #             exit(52)
         
     def Interpretation(self):
         self.InitializateLists()
@@ -56,6 +51,7 @@ class Interpret():
         Instr = Instructions(self.Instructions, self.LabelList)
         Instr.Execution()
 
+#------------------------------- Class Instructions --------------------------------
 class Instructions:
     def __init__(self, Instructions, LabelList):
         self.LabelList = LabelList
@@ -75,14 +71,12 @@ class Instructions:
             eval("self." + self.Instructions[self.NumOfInstr].opcode + "()")
             self.NumOfInstr += 1
             
-#---------------------------------------------------------------------------------------
     def PositionOfVar(self, var):
         for i in range(len(self.GlobalFrameList)):
             if self.GlobalFrameList[i].name == var:
                 return i
         exit(54)
     
-    # todo create function that will check if variable is in specific frame and then it will return the variable from the frame
     def GetVariable(self, varName):
         if(varName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
@@ -106,18 +100,6 @@ class Instructions:
             exit(54)
     
     # todo i have to add new type of variable to the frame
-
-    """
-    @brief Sets the value and type of a variable in the appropriate frame list based on the variable name prefix.
-    @param varName The name of the variable to be set.
-    @param newVarType The new type of the variable to be set.
-    @param newVarValue The new value of the variable to be set.
-    @return void
-    @details This function sets the value and type of a variable in the GlobalFrameList, LocalFramesStack, 
-    or TemporaryFrames list based on the variable name prefix (GF@, LF@, or TF@). 
-    If the variable does not exist in the corresponding frame list, the function exits with error code 54. 
-    If the frame type does not match the expected frame type, the function exits with error code 55. 
-    """
     def SetVariable(self,varName, newVarType, newVarValue):
         if(varName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):

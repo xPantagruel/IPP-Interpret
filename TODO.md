@@ -22,3 +22,5 @@ I should look at changing type of variable
         JUMP
 
 - prepsat if v add a ostatnich do jedne funkce ze ktere bude navratovy hodnoty dve instance classy
+- test instructions 
+- test frames (local frame)
