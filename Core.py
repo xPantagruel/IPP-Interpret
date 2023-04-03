@@ -61,7 +61,7 @@ class Instructions:
         self.DataStack = Stack()
         self.CallStack = Stack()
         self.TemporaryFrames = None
-        self.LocalFramesStack = None
+        self.LocalFramesStack = Stack()
         self.NumOfInstr = 0
     
     # execute instructions from list of instructions
@@ -78,17 +78,25 @@ class Instructions:
         exit(54)
     
     def GetVariable(self, varName):
+        # print("---GetVariable-" + varName)
         if(varName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
                     return self.GlobalFrameList[i]
-        elif(varName[0:3] == "LF@"):
-            if(self.FrameType != "LF"):
-                exit(55)
                 
-            for i in range(len(self.LocalFramesStack)):
-                if(self.LocalFramesStack[0][i].name == varName):
-                    return self.LocalFramesStack[0][i]
+        elif(varName[0:3] == "LF@"):
+            # print(self.FrameType)
+            # if(self.FrameType != "LF"):
+            #     exit(55)
+            
+            # Get the top list
+            # print(self.LocalFramesStack.IsEmpty())
+            TopList = self.LocalFramesStack.peek()
+            # print(TopList[0].name)
+            for i in range(len(TopList)):     
+                if(TopList[i].name == varName):
+                    return TopList[i]
+                
         elif(varName[0:3] == "TF@"):
             if(self.FrameType != "TF"):
                 exit(55)
@@ -108,15 +116,19 @@ class Instructions:
                     self.GlobalFrameList[i].value = newVarValue
                     return
             exit(54)
+            
+            #todo fix this same as getvariable
         elif(varName[0:3] == "LF@"):
-            if(self.FrameType != "LF"):
-                exit(55)
-                
-            for i in range(len(self.LocalFramesStack)):
-                if(self.LocalFramesStack[0][i].name == varName):
-                    self.LocalFramesStack[0][i].type = newVarType
-                    self.LocalFramesStack[0][i].value = newVarValue
+            # if(self.FrameType != "LF"):
+            #     exit(55)
+            TopList = self.LocalFramesStack.peek()
+            # print(TopList[0].name)
+            for i in range(len(TopList)):     
+                if(TopList[i].name == varName):
+                    TopList[i].type = newVarType
+                    TopList[i].value = newVarValue
                     return
+
             exit(54)    
         elif(varName[0:3] == "TF@"):
             if(self.FrameType != "TF"):
@@ -206,13 +218,19 @@ class Instructions:
     def PUSHFRAME(self):
         # I need to change TF@ to LF@ and then push it to the stack
         for i in range(len(self.TemporaryFrames)):
-            self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("TF@", "LF@")
+            self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("TF@", "LF@")            
 
         self.LocalFramesStack.push(self.TemporaryFrames)
         self.FrameType = "LF"
         
+        # todo priklad jak vstoupit do LF
+        # # Get the top list
+        # top_list = self.LocalFramesStack.peek()
+        # print(top_list[0].name)
+
+            
     def POPFRAME(self):
-        if(self.LocalFramesStack.isEmpty() and self.FrameType != "TF"):
+        if(self.LocalFramesStack.IsEmpty() and self.FrameType != "TF"):
             exit(55)
         else:
             self.TemporaryFrames = self.LocalFramesStack.pop()
@@ -253,14 +271,14 @@ class Instructions:
         # case 3 - var@TF
         elif(VarName[0:3] == "TF@" and self.FrameType == "TF"):
             # todo check if i have to check if LF is defined and if not then exit with error code 55
-            if(self.TempFrame == None):
+            if(self.TemporaryFrames == None):
                 exit(55)
             # check if var is already defined
-            for i in range(len(self.TempFrame)):
-                if(self.TempFrame[i].name == VarName):
+            for i in range(len(self.TemporaryFrames)):
+                if(self.TemporaryFrames[i].name == VarName):
                     exit(52)
             else:
-                self.TempFrame.append(Variable(VarName))
+                self.TemporaryFrames.append(Variable(VarName))
         else:
             exit(55)
     
