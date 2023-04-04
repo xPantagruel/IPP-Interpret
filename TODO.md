@@ -24,3 +24,5 @@ I should look at changing type of variable
 - prepsat if v add a ostatnich do jedne funkce ze ktere bude navratovy hodnoty dve instance classy
 - test instructions 
 - test frames (local frame)
+- prepsat int kontrolu jako regex -> bude stacit CheckType(var, expected type)
+- podivat se pokud xml bude na stdin zda to bude fungovat

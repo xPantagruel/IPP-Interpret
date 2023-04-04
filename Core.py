@@ -32,9 +32,10 @@ class Label:
         self.row = row
 #------------------------------- Class Interpret --------------------------------
 class Interpret():
-    def __init__(self, Instructions):
+    def __init__(self, Instructions, InputType="stdin"):
         self.Instructions = Instructions
         self.LabelList = []
+        self.InputT = InputType
     
     def InitializateLists(self): 
         # initialize label list and check if label is defined
@@ -48,12 +49,12 @@ class Interpret():
     def Interpretation(self):
         self.InitializateLists()
         # create instance of class Instructions
-        Instr = Instructions(self.Instructions, self.LabelList)
+        Instr = Instructions(self.Instructions, self.LabelList, self.InputT)
         Instr.Execution()
 
 #------------------------------- Class Instructions --------------------------------
 class Instructions:
-    def __init__(self, Instructions, LabelList):
+    def __init__(self, Instructions, LabelList, InputType="stdin"):
         self.LabelList = LabelList
         self.GlobalFrameList = [] 
         self.Instructions = Instructions
@@ -63,12 +64,88 @@ class Instructions:
         self.TemporaryFrames = None
         self.LocalFramesStack = Stack()
         self.NumOfInstr = 0
+        self.Input = InputType
     
     # execute instructions from list of instructions
     def Execution(self):
         while self.NumOfInstr < len(self.Instructions):
-            print("self." + self.Instructions[self.NumOfInstr].opcode + "()")
-            eval("self." + self.Instructions[self.NumOfInstr].opcode + "()")
+            # print("self." + self.Instructions[self.NumOfInstr].opcode + "()")
+            Instr=self.Instructions[self.NumOfInstr].opcode
+            # print("Instr: " + Instr)
+            # create switch case
+            if Instr == "MOVE":
+                self.MOVE()
+            elif Instr == "CREATEFRAME":
+                self.CREATEFRAME()
+            elif Instr == "PUSHFRAME":
+                self.PUSHFRAME()
+            elif Instr == "POPFRAME":
+                self.POPFRAME()
+            elif Instr == "DEFVAR":
+                self.DEFVAR()
+            elif Instr == "CALL":
+                self.CALL()
+            elif Instr == "RETURN":
+                self.RETURN()
+            elif Instr == "PUSHS":
+                self.PUSHS()
+            elif Instr == "POPS":
+                self.POPS()
+            elif Instr == "ADD":
+                self.ADD()
+            elif Instr == "SUB":
+                self.SUB()
+            elif Instr == "MUL":
+                self.MUL()
+            elif Instr == "IDIV":
+                self.IDIV()
+            elif Instr == "LT":
+                self.LT()
+            elif Instr == "GT":
+                self.GT()
+            elif Instr == "EQ":
+                self.EQ()
+            elif Instr == "AND":
+                self.AND()
+            elif Instr == "OR":
+                self.OR()
+            elif Instr == "NOT":
+                self.NOT()
+            elif Instr == "INT2CHAR":
+                self.INT2CHAR()
+            elif Instr == "STRI2INT":
+                self.STRI2INT()
+            elif Instr == "READ":
+                self.READ()
+            elif Instr == "WRITE":
+                self.WRITE()
+            elif Instr == "CONCAT":
+                self.CONCAT()
+            elif Instr == "STRLEN":
+                self.STRLEN()
+            elif Instr == "GETCHAR":
+                self.GETCHAR()
+            elif Instr == "SETCHAR":
+                self.SETCHAR()
+            elif Instr == "TYPE":
+                self.TYPE()
+            elif Instr == "LABEL":
+                self.LABEL()
+            elif Instr == "JUMP":
+                self.JUMP()
+            elif Instr == "JUMPIFEQ":
+                self.JUMPIFEQ()
+            elif Instr == "JUMPIFNEQ":
+                self.JUMPIFNEQ()
+            elif Instr == "DPRINT":
+                self.DPRINT()
+            elif Instr == "EXIT":
+                self.EXIT()
+            elif Instr == "BREAK":
+                self.BREAK()
+            else:
+                exit(32)#todo check if exit code is correct            
+
             self.NumOfInstr += 1
             
     def PositionOfVar(self, var):
@@ -166,6 +243,45 @@ class Instructions:
             exit(54)
         
         exit(54)
+    
+    def GetSymbVars(self, symbType1, symbType2):
+        
+        # var var
+        if symbType1 == "var" and symbType2 == "var":
+            symb1 = self.GetVariable(self.GetVarName(1))
+            symb2 = self.GetVariable(self.GetVarName(2))
+
+        # symb var
+        elif symbType1 != "var" and symbType2 == "var":
+            symb1 = self.GetSymb(1)
+            symb2 = self.GetVariable(self.GetVarName(2))
+
+        # var symb
+        elif symbType1 == "var" and symbType2 != "var":
+            symb1 = self.GetVariable(self.GetVarName(1))
+            symb2 = self.GetSymb(2)
+
+        # symb symb
+        elif symbType1 != "var" and symbType2 != "var":
+            symb1 = self.GetSymb(1)
+            symb2 = self.GetSymb(2)
+        else:
+            exit(53)
+            
+        return symb1, symb2
+    
+    def CheckType(var, expectedType):
+        if expectedType == "int" and isinstance(var, int):
+            return True
+        elif expectedType == "float" and isinstance(var, float):
+            return True
+        elif expectedType == "bool" and isinstance(var, bool):
+            return True
+        elif expectedType == "str" and isinstance(var, str):
+            return True
+        else:
+            return False
+
                 
     def GetType(self, numOfArg):
         i = self.NumOfInstr
@@ -287,7 +403,7 @@ class Instructions:
         # save the current position of the instruction into stack
         self.CallStack.push(self.NumOfInstr)
         
-        self.NumOfInstr = self.LabelList[self.Instructions[self.NumOfInstr].order].row - 1
+        self.NumOfInstr = self.LabelList[self.Instructions[self.NumOfInstr].order].row
     
     def RETURN(self):
         if(self.CallStack.isEmpty()):
@@ -323,72 +439,35 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else: # set new value to the variable
-            value = int(symb1.value) + int(symb2.value)
-            self.SetVariable(self.GetVarName(0), "int", value)
-                    
+            try:
+                value = int(symb1.value) + int(symb2.value)
+                self.SetVariable(self.GetVarName(0), "int", value)
+            except:
+                exit(53)
+    
     def SUB(self):
         i = self.NumOfInstr
         
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else:
-            value = int(symb1.value) - int(symb2.value)
-            self.SetVariable(self.GetVarName(0), "int", value)
-            
+            try:
+                value = int(symb1.value) - int(symb2.value)
+                self.SetVariable(self.GetVarName(0), "int", value)
+            except:
+                exit(53)
             
                     
     def MUL(self):
@@ -397,36 +476,17 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else:
-            value = int(symb1.value) * int(symb2.value)
-            self.SetVariable(self.GetVarName(0), "int", value)
-            
+            try:
+                value = int(symb1.value) * int(symb2.value)
+                self.SetVariable(self.GetVarName(0), "int", value)
+            except:
+                exit(53)
             
     def IDIV(self):
         i = self.NumOfInstr
@@ -434,37 +494,19 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
+        elif(int(symb2.value) == 0):
+            exit(57)
         else:
-            value = int(symb1.value) // int(symb2.value)
-            self.SetVariable(self.GetVarName(0), "int", value)
-            
-            
+            try:
+                value = int(symb1.value) // int(symb2.value)
+                self.SetVariable(self.GetVarName(0), "int", value)
+            except:
+                exit(53)
 #     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
 # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
 # string) a do ⟨var⟩ zapíše výsledek typu bool (false při neplatnosti nebo true v případě platnosti
@@ -478,28 +520,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
@@ -531,28 +552,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
@@ -584,28 +584,8 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
@@ -642,28 +622,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type or symb1.type != "bool"):
@@ -682,28 +641,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type or symb1.type != "bool"):
@@ -779,28 +717,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type or symb1.type != "int"):
@@ -828,18 +745,18 @@ class Instructions:
         
         if(type == "int"):
             try:
-                value = int(input())
+                value = int(self.Input)
                 self.SetVariable(self.GetVarName(0), "int", value)
             except ValueError:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "string"):
-            value = input()
+            value = self.Input
             self.SetVariable(self.GetVarName(0), "string", value)
             
         elif(type == "bool"):
             try:
-                value = input()
+                value = self.Input
                 if(value.lower() == "true"):
                     value = "true"
                 else:
@@ -887,28 +804,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type != symb2.type or symb1.type != "string"):
@@ -947,28 +843,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type != symb2.type or symb1.type != "string"):
@@ -991,28 +866,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type != symb2.type or symb1.type != "string"):
@@ -1076,28 +930,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
@@ -1115,28 +948,7 @@ class Instructions:
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
-        # var var
-        if(symbType1 == "var" and symbType2 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        # symb var
-        elif(symbType1 != "var" and symbType2 == "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-            
-        #var symb
-        elif(symbType1 == "var" and symbType2 != "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-            
-        #symb symb
-        elif(symbType1 != "var" and symbType2 != "var"):
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
-            
-        else:
-            exit(53)
+        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
@@ -1154,6 +966,8 @@ class Instructions:
         symb = self.GetSymb(0)
         print(symb.value, file=sys.stderr)
     
+    def EXIT():
+        pass
 # BREAK Výpis stavu interpretu na stderr
 # Předpokládá se, že na standardní chybový výstup (stderr) vypíše stav interpretu (např. pozice
 # v kódu, obsah rámců, počet vykonaných instrukcí) v danou chvíli (tj. během vykonávání této
