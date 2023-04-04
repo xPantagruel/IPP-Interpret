@@ -25,18 +25,27 @@ class InstructionParser:
             
         self.instructions = []
         for instr_element in root:
-            if instr_element.tag != 'instruction':
+            if instr_element.tag != 'instruction' or root.tag != 'program' :
+                exit(32)
+            
+            try:    
+                instr_order = int(instr_element.get('order'))
+            except:
                 exit(32)
                 
-            instr_order = int(instr_element.get('order'))
             instr_opcode = instr_element.get('opcode')
             instr_args = []
             for arg_element in instr_element:
+                # check if the arg name is valid
+                if arg_element.tag != 'arg1' and arg_element.tag != 'arg2' and arg_element.tag != 'arg3' :
+                    exit(32)
+                    
                 arg_type = arg_element.get('type')
                 arg_value = arg_element.text
                 arg_number = int(arg_element.tag[3:])
                 instr_args.append((arg_number, Argument(arg_type, arg_value)))
 
+            # sort the arguments by their number
             instr_args.sort(key=lambda x: x[0])
             instr_args = [arg[1] for arg in instr_args]
 
@@ -45,12 +54,13 @@ class InstructionParser:
         
     def get_instructions(self):
         self.instructions.sort(key=lambda x: x.order)
-        # check if there are no duplicate orders
-        orders = []
         
+        # check if there are no duplicate orders or no negative, 0 orders
+        orders = []
         for instr in self.instructions:
             if instr.order in orders or instr.order <= 0:
                 exit(32)
             orders.append(instr.order)
+        
             
         return self.instructions
