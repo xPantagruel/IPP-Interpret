@@ -28,3 +28,5 @@ I should look at changing type of variable
 - podivat se pokud xml bude na stdin zda to bude fungovat
 - JUMPIFEQ nefunguje 
 - sekvence /032 nefunguje 
+- zalezi na velikosti pismene instrukce MOVE/move?
+- nastavit setVariable aby zmenila typ podle noveho typu promene -> int(), str(),...

@@ -231,7 +231,7 @@ class Instructions:
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
                     self.GlobalFrameList[i].type = newVarType
-                    self.GlobalFrameList[i].value = newVarValue
+                    self.GlobalFrameList[i].value = self.ChangeVarType(newVarType, newVarValue)
                     return
             exit(54)
             
@@ -244,7 +244,7 @@ class Instructions:
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
-                    TopList[i].value = newVarValue
+                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)
                     return
 
             exit(54)    
@@ -254,7 +254,7 @@ class Instructions:
                 
             for i in range(len(self.TemporaryFrames)):
                 if(self.TemporaryFrames[i].name == varName):
-                    self.TemporaryFrames[i].value = newVarValue
+                    self.TemporaryFrames[i].value = self.ChangeVarType(newVarType, newVarValue)
                     self.TemporaryFrames[i].type = newVarValue
                     return
             exit(54)
@@ -284,6 +284,30 @@ class Instructions:
             exit(54)
         
         exit(54)
+    
+    def ChangeVarType(self, newVarType, newVarValue):
+        if(newVarType == "bool"):
+            if(newVarValue == "true"):
+                newVarValue = True
+            elif(newVarValue == "false"):
+                newVarValue = False
+            else:
+                exit(53)
+        elif(newVarType == "int"):
+            try:
+                newVarValue = int(newVarValue)
+            except ValueError:
+                exit(53)
+        elif(newVarType == "string"):
+            try:
+                newVarValue = str(newVarValue)
+            except ValueError:
+                exit(53)
+        elif(newVarType == "nil"):
+            return newVarValue
+        else:
+            exit(53)
+        return newVarValue
     
     def GetSymbVars(self, symbType1, symbType2):
         
@@ -476,7 +500,7 @@ class Instructions:
             exit(56)
         else:
             VarPop = self.DataStack.pop()
-            self.SetVariable(VarPop,instr.args[0])
+            self.SetVariable(instr.args[0].value, VarPop.type, VarPop.value)
     
     # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ 
     # int check
@@ -917,17 +941,17 @@ class Instructions:
         
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
-        # check if symb1 and symb2 are both string types
-        if(symb1.type != symb2.type or symb1.type != "string"):
-            exit(53)
-        
         # check if symb2 is in range
         if(symb1.value < 0 or symb1.value >= len(symb1.value)):
             exit(58)
-        
+            
         # check if symb2 is not empty
         if(symb2.value == ""):
             exit(58)
+            
+        # check if symb1 and symb2 are both string types
+        if(symb1.type != symb2.type or symb1.type != "string"):
+            exit(53)
         
         value = symb1.value
         value[symb1.value] = symb2.value[0]
@@ -1046,8 +1070,20 @@ class Instructions:
         symb = self.GetSymb(0)
         print(symb.value, file=sys.stderr)
     
+# Ukončí vykonávání programu, případně vypíše statistiky a ukončí interpret s návratovým kódem
+# ⟨symb⟩, kde ⟨symb⟩ je celé číslo v intervalu 0 až 49 (včetně). Nevalidní celočíselná hodnota
+# ⟨symb⟩ vede na chybu 57.
     def EXIT(self):
-        pass
+        symb = self.GetSymb(0)
+        try:
+            code = int(symb.value)
+        except:
+            exit(57)
+            
+        if(code >= 0 and code <= 49):
+            exit(code)
+        else:
+            exit(57)        
 # BREAK Výpis stavu interpretu na stderr
 # Předpokládá se, že na standardní chybový výstup (stderr) vypíše stav interpretu (např. pozice
 # v kódu, obsah rámců, počet vykonaných instrukcí) v danou chvíli (tj. během vykonávání této

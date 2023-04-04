@@ -30,10 +30,10 @@ class InstructionParser:
             
             try:    
                 instr_order = int(instr_element.get('order'))
+                instr_opcode = str(instr_element.get('opcode'))
             except:
                 exit(32)
-                
-            instr_opcode = instr_element.get('opcode')
+            
             instr_args = []
             for arg_element in instr_element:
                 # check if the arg name is valid
@@ -49,7 +49,7 @@ class InstructionParser:
             instr_args.sort(key=lambda x: x[0])
             instr_args = [arg[1] for arg in instr_args]
 
-            instr = Instr(instr_order, instr_opcode, instr_args)
+            instr = Instr(instr_order, instr_opcode.upper(), instr_args)
             self.instructions.append(instr)
         
     def get_instructions(self):
@@ -58,7 +58,7 @@ class InstructionParser:
         # check if there are no duplicate orders or no negative, 0 orders
         orders = []
         for instr in self.instructions:
-            if instr.order in orders or instr.order <= 0:
+            if instr.order in orders or instr.order <= 0:                
                 exit(32)
             orders.append(instr.order)
         
