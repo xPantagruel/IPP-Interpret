@@ -41,10 +41,11 @@ class Interpret():
         # initialize label list and check if label is defined
         for i in range(len(self.Instructions)):
             if self.Instructions[i].opcode == "LABEL":
-                if self.Instructions[i].args[0].value not in self.LabelList:
-                    self.LabelList.append(Label(self.Instructions[i].args[0].value, self.Instructions[i].args[0].value, i-1))
-                else:
-                    exit(52)
+                for j in range(len(self.LabelList)):
+                    if self.LabelList[j].name == self.Instructions[i].args[0].value:
+                        exit(52)
+                
+                self.LabelList.append(Label(self.Instructions[i].args[0].value, self.Instructions[i].args[0].value, i-1))
         
     def Interpretation(self):
         self.InitializateLists()
@@ -71,77 +72,113 @@ class Instructions:
         while self.NumOfInstr < len(self.Instructions):
             # print("self." + self.Instructions[self.NumOfInstr].opcode + "()")
             Instr=self.Instructions[self.NumOfInstr].opcode
+            
             # print("Instr: " + Instr)
             # create switch case
             if Instr == "MOVE":
+                self.NumOfArgCheck(2)
                 self.MOVE()
             elif Instr == "CREATEFRAME":
+                self.NumOfArgCheck(0)
                 self.CREATEFRAME()
             elif Instr == "PUSHFRAME":
+                self.NumOfArgCheck(0)
                 self.PUSHFRAME()
             elif Instr == "POPFRAME":
+                self.NumOfArgCheck(0)
                 self.POPFRAME()
             elif Instr == "DEFVAR":
+                self.NumOfArgCheck(1)
                 self.DEFVAR()
             elif Instr == "CALL":
+                self.NumOfArgCheck(1)
                 self.CALL()
             elif Instr == "RETURN":
+                self.NumOfArgCheck(0)
                 self.RETURN()
             elif Instr == "PUSHS":
+                self.NumOfArgCheck(1)
                 self.PUSHS()
             elif Instr == "POPS":
+                self.NumOfArgCheck(1)
                 self.POPS()
             elif Instr == "ADD":
+                self.NumOfArgCheck(3)
                 self.ADD()
             elif Instr == "SUB":
+                self.NumOfArgCheck(3)
                 self.SUB()
             elif Instr == "MUL":
+                self.NumOfArgCheck(3)
                 self.MUL()
             elif Instr == "IDIV":
+                self.NumOfArgCheck(3)
                 self.IDIV()
             elif Instr == "LT":
+                self.NumOfArgCheck(3)
                 self.LT()
             elif Instr == "GT":
+                self.NumOfArgCheck(3)
                 self.GT()
             elif Instr == "EQ":
+                self.NumOfArgCheck(3)
                 self.EQ()
             elif Instr == "AND":
+                self.NumOfArgCheck(3)
                 self.AND()
             elif Instr == "OR":
+                self.NumOfArgCheck(3)
                 self.OR()
             elif Instr == "NOT":
+                self.NumOfArgCheck(3)
                 self.NOT()
             elif Instr == "INT2CHAR":
+                self.NumOfArgCheck(2)
                 self.INT2CHAR()
             elif Instr == "STRI2INT":
+                self.NumOfArgCheck(3)
                 self.STRI2INT()
             elif Instr == "READ":
+                self.NumOfArgCheck(2)
                 self.READ()
             elif Instr == "WRITE":
+                self.NumOfArgCheck(1)
                 self.WRITE()
             elif Instr == "CONCAT":
+                self.NumOfArgCheck(3)
                 self.CONCAT()
             elif Instr == "STRLEN":
+                self.NumOfArgCheck(2)
                 self.STRLEN()
             elif Instr == "GETCHAR":
+                self.NumOfArgCheck(3)
                 self.GETCHAR()
             elif Instr == "SETCHAR":
+                self.NumOfArgCheck(3)
                 self.SETCHAR()
             elif Instr == "TYPE":
+                self.NumOfArgCheck(2)
                 self.TYPE()
             elif Instr == "LABEL":
+                self.NumOfArgCheck(1)
                 self.LABEL()
             elif Instr == "JUMP":
+                self.NumOfArgCheck(1)
                 self.JUMP()
             elif Instr == "JUMPIFEQ":
+                self.NumOfArgCheck(3)
                 self.JUMPIFEQ()
             elif Instr == "JUMPIFNEQ":
+                self.NumOfArgCheck(3)
                 self.JUMPIFNEQ()
             elif Instr == "DPRINT":
+                self.NumOfArgCheck(1)
                 self.DPRINT()
             elif Instr == "EXIT":
+                self.NumOfArgCheck(1)
                 self.EXIT()
             elif Instr == "BREAK":
+                self.NumOfArgCheck(0)
                 self.BREAK()
             else:
                 exit(32)#todo check if exit code is correct            
@@ -153,6 +190,10 @@ class Instructions:
             if self.GlobalFrameList[i].name == var:
                 return i
         exit(54)
+    
+    def NumOfArgCheck(self, numOfArgs):
+        if(len(self.Instructions[self.NumOfInstr].args) != numOfArgs):
+            exit(32)
     
     def GetVariable(self, varName):
         # print("---GetVariable-" + varName)
@@ -280,7 +321,7 @@ class Instructions:
         elif expectedType == "str" and isinstance(var, str):
             return True
         else:
-            return False
+            exit(53)
 
                 
     def GetType(self, numOfArg):
@@ -332,6 +373,8 @@ class Instructions:
 # todo použitím vytvořit pomocí CREATEFRAME. Pokus o přístup k nedefinovanému rámci vede na
 # todo chybu 55.
     def PUSHFRAME(self):
+        if(self.FrameType != "TF"):
+            exit(55)
         # I need to change TF@ to LF@ and then push it to the stack
         for i in range(len(self.TemporaryFrames)):
             self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("TF@", "LF@")            
@@ -403,10 +446,14 @@ class Instructions:
         # save the current position of the instruction into stack
         self.CallStack.push(self.NumOfInstr)
         
-        self.NumOfInstr = self.LabelList[self.Instructions[self.NumOfInstr].order].row
-    
+        # find the row of the label
+        for i in range(len(self.LabelList)):
+            if(self.LabelList[i].name == self.Instructions[self.NumOfInstr].args[0].value):
+                self.NumOfInstr = self.LabelList[i].row
+                break
+            
     def RETURN(self):
-        if(self.CallStack.isEmpty()):
+        if(self.CallStack.IsEmpty()):
             exit(56)
         else:
             self.NumOfInstr = self.CallStack.pop()    
@@ -745,19 +792,20 @@ class Instructions:
         
         if(type == "int"):
             try:
-                value = int(self.Input)
+                value = self.Input.read()
+                # self.CheckType(value, "int")
                 self.SetVariable(self.GetVarName(0), "int", value)
             except ValueError:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "string"):
-            value = self.Input
+            value = self.Input.read()
             self.SetVariable(self.GetVarName(0), "string", value)
             
         elif(type == "bool"):
             try:
-                value = self.Input
-                if(value.lower() == "true"):
+                value = self.Input.read()
+                if(value == "true"):
                     value = "true"
                 else:
                     value = "false"
@@ -794,7 +842,8 @@ class Instructions:
         elif(symb1.value == "nil@nil"):
             print("", end="")
         else:
-            print(symb1.value, end="")
+            string = str(symb1.value)
+            print(string, end="")
     
 #     CONCAT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Konkatenace dvou řetězců
 # Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
@@ -929,44 +978,75 @@ class Instructions:
         Label = self.GetValue(0)
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-        
+
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
-        
-        # check if symb1 and symb2 are both string types
-        if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
-            if(symb1.value == symb2.value):
+            
+        if(symb1.type == symb2.type):
+            
+            if(symb1.type == "string"):
+                Equal = symb1.value == symb1.value
+            elif(symb1.type == "int"):
+                try:
+                    Equal = int(symb1.value) == int(symb2.value)
+                except:
+                    exit(53)
+            elif(symb1.type == "bool"):
+                try:
+                    Equal = bool(symb1.value) == bool(symb2.value)
+                except:
+                    exit(53)
+            elif(symb1.type == "nil" or symb2.type == "nil"):
+                Equal = True
+            else:
+                exit(52)
+            
+            if(Equal):
                 for j in range(len(self.LabelList)):
                     if(self.LabelList[j].name == Label):
                         self.NumOfInstr = self.LabelList[j].row  
                         return
                 exit(52)
-        else:
-            exit(53)
                 
     def JUMPIFNEQ(self):
         Label = self.GetValue(0)
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-        
+
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
-        
-        # check if symb1 and symb2 are both string types
-        if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
-            if(symb1.value != symb2.value):
+            
+        if(symb1.type == symb2.type):
+            
+            if(symb1.type == "string"):
+                Equal = symb1.value != symb1.value
+            elif(symb1.type == "int"):
+                try:
+                    Equal = int(symb1.value) != int(symb2.value)
+                except:
+                    exit(53)
+            elif(symb1.type == "bool"):
+                try:
+                    Equal = bool(symb1.value) != bool(symb2.value)
+                except:
+                    exit(53)
+            elif(symb1.type == "nil" or symb2.type == "nil"):
+                Equal = True
+            else:
+                exit(52)
+            
+            if(Equal):
                 for j in range(len(self.LabelList)):
                     if(self.LabelList[j].name == Label):
                         self.NumOfInstr = self.LabelList[j].row  
                         return
                 exit(52)
-        else:
-            exit(53)
+
 # DPRINT ⟨symb⟩ Výpis hodnoty na stderr
 # Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
     def DPRINT(self) :
         symb = self.GetSymb(0)
         print(symb.value, file=sys.stderr)
     
-    def EXIT():
+    def EXIT(self):
         pass
 # BREAK Výpis stavu interpretu na stderr
 # Předpokládá se, že na standardní chybový výstup (stderr) vypíše stav interpretu (např. pozice
