@@ -48,7 +48,7 @@ class InstructionParser:
             # sort the arguments by their number
             instr_args.sort(key=lambda x: x[0])
             instr_args = [arg[1] for arg in instr_args]
-
+            
             instr = Instr(instr_order, instr_opcode.upper(), instr_args)
             self.instructions.append(instr)
         

@@ -26,14 +26,28 @@ I should look at changing type of variable
     GETCHAR
     STRLEN
     CONCAT
+    WRITE
+    DEFVAR
+    MOVE
+    CREATEFRAME
+    PUSHFRAME
+    POPFRAME
+    CALL
+    RETURN
+    PUSHS
+    POPS
+    ADD
+    SUB
+    MUL
+    IDIV
 
 - prepsat if v add a ostatnich do jedne funkce ze ktere bude navratovy hodnoty dve instance classy
 - test instructions 
 - test frames (local frame)
 - prepsat int kontrolu jako regex -> bude stacit CheckType(var, expected type) -> kluci maji try catch
 - podivat se pokud xml bude na stdin zda to bude fungovat
-- JUMPIFEQ nefunguje 
-- sekvence /032 nefunguje 
-- zalezi na velikosti pismene instrukce MOVE/move?
 - nastavit setVariable aby zmenila typ podle noveho typu promene -> int(), str(),...
-- WRITE STILL THERE ARE \032 ... 
+- zkontrolovat WRITE hodne essential 
+- test defvar add multiple times same var in each frame and check if it returns 52
+- prepsat aby zavolala pouze insance interpretu a vse uz se postaral
+- podivat se na to kdyz pristupuju do lokalniho ramce co vse musi byt splneno 

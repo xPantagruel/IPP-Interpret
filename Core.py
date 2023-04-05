@@ -237,8 +237,8 @@ class Instructions:
             
             #todo fix this same as getvariable
         elif(varName[0:3] == "LF@"):
-            # if(self.FrameType != "LF"):
-            #     exit(55)
+            if(self.LocalFramesStack == None or self.LocalFramesStack.IsEmpty()):
+                exit(55)
             TopList = self.LocalFramesStack.peek()
             # print(TopList[0].name)
             for i in range(len(TopList)):     
@@ -261,24 +261,27 @@ class Instructions:
         else:
             exit(54)
             
-    def VarExists(self, var):
-        if(var[0:3] == "GF@"):
+    def VarExists(self, VarName):
+        if(VarName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
-                if(self.GlobalFrameList[i].name == var):
+                if(self.GlobalFrameList[i].name == VarName):
                     return
-        elif(var[0:3] == "LF@"):
+        elif(VarName[0:3] == "LF@"):
             if(self.FrameType != "LF"):
                 exit(55)
                 
-            for i in range(len(self.LocalFramesStack)):
-                if(self.LocalFramesStack[0][i].name == var):
+            TopList = self.LocalFramesStack.peek()
+            # print(TopList[0].name)
+            for i in range(len(TopList)):     
+                if(TopList[i].name == VarName):
                     return
-        elif(var[0:3] == "TF@"):
+
+        elif(VarName[0:3] == "TF@"):
             if(self.FrameType != "TF"):
                 exit(55)
                 
             for i in range(len(self.TemporaryFrames)):
-                if(self.TemporaryFrames[i].name == var):
+                if(self.TemporaryFrames[i].name == VarName):
                     return
         else:
             exit(54)
@@ -347,7 +350,6 @@ class Instructions:
         else:
             exit(53)
 
-                
     def GetType(self, numOfArg):
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].type
@@ -384,7 +386,7 @@ class Instructions:
             self.VarExists(self.GetValue(0))
             self.VarExists(self.GetValue(1))
 
-            # copy to var var value and type
+            # copy to var value and type
             var = self.GetVariable(self.GetValue(1))
             self.SetVariable(self.GetValue(0), var.type, var.value)      
         
@@ -427,7 +429,8 @@ class Instructions:
         # I have 3 cases - var@GF, var@LF, var@TF
         # first thing I have to check which frame is active and check symbols before '@' then check if it suits the frame the frame type, then I have to create variable in the frame
         # second thing of I have to check if the variable is already defined and if yes then I have to exit with error code 52
-        VarName = self.Instructions[self.NumOfInstr].args[0].value
+        # VarName = self.Instructions[self.NumOfInstr].args[0].value
+        VarName = self.GetVarName(0)
         #check var type 
         # case 1 - var@GF
         if(VarName[0:3] == "GF@"):
@@ -439,17 +442,22 @@ class Instructions:
             self.GlobalFrameList.append(Variable(VarName))
                 
         # case 2 - var@LF
-        elif(VarName[0:3] == "LF@" and self.FrameType == "LF"):
+        elif(VarName[0:3] == "LF@"):
             # todo check if i have to check if LF is defined and if not then exit with error code 55
-            if(self.LocalFramesStack == None):
+            if(self.LocalFramesStack == None or self.LocalFramesStack.IsEmpty()):
                 exit(55)
-            # check if var is already defined
-            for i in range(len(self.LocalFramesStack)):
-                if(self.LocalFramesStack[0][i].name == VarName):#todo check if it is correct 
+                    
+            TopList = self.LocalFramesStack.peek()
+            # print(TopList[0].name)
+            for i in range(len(TopList)):     
+                if(TopList[i].name == VarName):
                     exit(52)
             
             # if var is not defined then I have to create it
-            self.LocalFramesStack[0].append(Variable(VarName))
+            TopList.append(Variable(VarName))
+            self.LocalFramesStack.pop()
+            self.LocalFramesStack.push(TopList)
+
 
         # case 3 - var@TF
         elif(VarName[0:3] == "TF@" and self.FrameType == "TF"):
@@ -488,7 +496,7 @@ class Instructions:
         instr = self.Instructions[self.NumOfInstr]
         # check if its variable(call function to get variable) or symbol
         if(instr.args[0].type == "var"):
-            var = self.GetVariable(instr.args[0].value)
+            var = self.GetVariable(self.GetVarName(0))
             self.DataStack.push(var.value)
         else:
             symb = Variable("Symb",instr.args[0].type, instr.args[0].value )# the name is not crucial becouse it doesnt change anything "Symb"
