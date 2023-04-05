@@ -843,6 +843,35 @@ class Instructions:
 # Vypíše hodnotu ⟨symb⟩ na standardní výstup. Až na typ bool a hodnotu nil@nil je formát
 # výpisu kompatibilní s příkazem print jazyka Python 3 s doplňujícím parametrem end='' (zamezí dodatečnému odřádkování). Pravdivostní hodnota se vypíše jako true a nepravda jako
 # false. Hodnota nil@nil se vypíše jako prázdný řetězec.
+    def ConvertStringLiterals(self,string):
+        # inicializace proměnných
+        result = ""
+        EscapeMode = False
+        EscapeCode = ""
+        
+        # projdeme každý znak řetězce
+        for char in string:
+            # escape sekvence
+            if EscapeMode:
+                EscapeCode += char
+                if len(EscapeCode) == 3:
+                    result += chr(int(EscapeCode))
+                    EscapeMode = False
+                    EscapeCode = ""
+            # běžný tisknutelný znak
+            elif char not in ['\n', '\r', '\t', ' ', '#', '\\']:
+                result += char
+            # začátek escape sekvence
+            elif char == '\\':
+                EscapeMode = True
+            # zakázána mřížka a zpětné lomítko
+            elif char in ['#', '\\']:
+                pass
+            # zakódování bílého znaku
+            else:
+                result += chr(ord(char) + 128)
+        
+        return result
 
     def WRITE(self):
         i = self.NumOfInstr
@@ -867,7 +896,8 @@ class Instructions:
             print("", end="")
         else:
             string = str(symb1.value)
-            print(string, end="")
+            converted_str = self.ConvertStringLiterals(string)
+            print(converted_str, end="")
     
 #     CONCAT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Konkatenace dvou řetězců
 # Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
