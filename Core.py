@@ -915,16 +915,18 @@ class Instructions:
         i = self.NumOfInstr
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-        
+        var = self.GetVarName(0)
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both string types
-        if(symb1.type != symb2.type or symb1.type != "string"):
+        if(symb1.type != "string" or symb2.type != "int"):
             exit(53)
         
-        # check if symb2 is in range
-        if(symb2.value < 0 or symb2.value >= len(symb1.value)):
+        try:
+            value = symb1.value[int(symb2.value)]
+        except IndexError:
             exit(58)
+
         
         value = symb1.value[symb2.value]
         self.SetVariable(self.GetVarName(0), "string", value)
@@ -938,23 +940,30 @@ class Instructions:
         i = self.NumOfInstr
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-        
+        var = self.GetVariable(self.GetVarName(0))
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
-        
-        # check if symb2 is in range
-        if(symb1.value < 0 or symb1.value >= len(symb1.value)):
-            exit(58)
-            
-        # check if symb2 is not empty
-        if(symb2.value == ""):
-            exit(58)
-            
-        # check if symb1 and symb2 are both string types
-        if(symb1.type != symb2.type or symb1.type != "string"):
+
+        # check if var, symb2 is string type
+        if(var.type != symb2.type or var.type != "string"):
             exit(53)
+
+        # check if symb2 is in range
+        if(symb1.value < 0 or symb1.value >= len(var.value)):
+            exit(58)
         
-        value = symb1.value
-        value[symb1.value] = symb2.value[0]
+        # check if symb2 is empty
+        if(len(symb2.value) == 0):
+            exit(58)
+            
+        # check if len of var is less then symb1 value
+        if(len(var.value) <= symb1.value):
+            exit(58)
+        
+        prefix = var.value[:symb1.value]
+        suffix = var.value[symb1.value + 1:]
+        new_value = prefix + symb2.value[0] + suffix
+        value = new_value
+
         self.SetVariable(self.GetVarName(0), "string", value)
 
 # TYPE ⟨var⟩ ⟨symb⟩ Zjisti typ daného symbolu

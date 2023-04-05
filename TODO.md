@@ -20,6 +20,12 @@ I should look at changing type of variable
         SUB
         LABEL
         JUMP
+        SETCHAR
+-definite test
+    SETCHAR
+    GETCHAR
+    STRLEN
+    CONCAT
 
 - prepsat if v add a ostatnich do jedne funkce ze ktere bude navratovy hodnoty dve instance classy
 - test instructions 
@@ -30,3 +36,4 @@ I should look at changing type of variable
 - sekvence /032 nefunguje 
 - zalezi na velikosti pismene instrukce MOVE/move?
 - nastavit setVariable aby zmenila typ podle noveho typu promene -> int(), str(),...
+- WRITE STILL THERE ARE \032 ... 
