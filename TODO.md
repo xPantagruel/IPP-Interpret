@@ -51,3 +51,4 @@ I should look at changing type of variable
 - test defvar add multiple times same var in each frame and check if it returns 52
 - prepsat aby zavolala pouze insance interpretu a vse uz se postaral
 - podivat se na to kdyz pristupuju do lokalniho ramce co vse musi byt splneno 
+- TODO FIX BUG KDYZ PRISTUPUJU DO FRAME LOCAL MEL BYCH PRI EDITU VARIABLE SI VYTAHNOUT ZMENIT A VRATIT ZPET DO STACKU 

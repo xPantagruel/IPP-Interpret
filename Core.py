@@ -20,7 +20,7 @@ class Stack:
 
 
 class Variable:
-    def __init__(self, name, type="nil", value="nil"):
+    def __init__(self, name, type=None, value=None):
         self.name = name
         self.type = type
         self.value = value
@@ -185,27 +185,30 @@ class Instructions:
 
             self.NumOfInstr += 1
             
-    def PositionOfVar(self, var):
-        for i in range(len(self.GlobalFrameList)):
-            if self.GlobalFrameList[i].name == var:
-                return i
-        exit(54)
+    # def PositionOfVar(self, var):
+    #     for i in range(len(self.GlobalFrameList)):
+    #         if self.GlobalFrameList[i].name == var:
+    #             return i
+    #     exit(54)
     
     def NumOfArgCheck(self, numOfArgs):
         if(len(self.Instructions[self.NumOfInstr].args) != numOfArgs):
-            exit(32)
-    
-    def GetVariable(self, varName):
+            exit(32) 
+            
+    def GetVariable(self, varName, TypeOpiton=False ):
         # print("---GetVariable-" + varName)
         if(varName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
+                    if(not TypeOpiton):
+                        if(self.GlobalFrameList[i].value == None):# check if variable is defined
+                            exit(56)
                     return self.GlobalFrameList[i]
                 
         elif(varName[0:3] == "LF@"):
             # print(self.FrameType)
-            # if(self.FrameType != "LF"):
-            #     exit(55)
+            if(self.LocalFramesStack.IsEmpty()):
+                exit(55)
             
             # Get the top list
             # print(self.LocalFramesStack.IsEmpty())
@@ -213,6 +216,9 @@ class Instructions:
             # print(TopList[0].name)
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
+                    if(not TypeOpiton):
+                        if(TopList[i].value == None):# check if variable is defined
+                            exit(56)
                     return TopList[i]
                 
         elif(varName[0:3] == "TF@"):
@@ -221,9 +227,12 @@ class Instructions:
                 
             for i in range(len(self.TemporaryFrames)):
                 if(self.TemporaryFrames[i].name == varName):
+                    if(not TypeOpiton):
+                        if(self.TemporaryFrames[i].value == None):# check if variable is defined
+                            exit(56)
                     return self.TemporaryFrames[i]
-        else:
-            exit(54)
+                
+        exit(54)
     
     # todo i have to add new type of variable to the frame
     def SetVariable(self,varName, newVarType, newVarValue):
@@ -244,7 +253,7 @@ class Instructions:
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
-                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)
+                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)#TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST 
                     return
 
             exit(54)    
@@ -267,7 +276,7 @@ class Instructions:
                 if(self.GlobalFrameList[i].name == VarName):
                     return
         elif(VarName[0:3] == "LF@"):
-            if(self.FrameType != "LF"):
+            if(self.LocalFramesStack.IsEmpty()):
                 exit(55)
                 
             TopList = self.LocalFramesStack.peek()
@@ -287,6 +296,7 @@ class Instructions:
             exit(54)
         
         exit(54)
+        
     
     def ChangeVarType(self, newVarType, newVarValue):
         if(newVarType == "bool"):
@@ -338,17 +348,17 @@ class Instructions:
             
         return symb1, symb2
     
-    def CheckType(var, expectedType):
-        if expectedType == "int" and isinstance(var, int):
-            return True
-        elif expectedType == "float" and isinstance(var, float):
-            return True
-        elif expectedType == "bool" and isinstance(var, bool):
-            return True
-        elif expectedType == "str" and isinstance(var, str):
-            return True
-        else:
-            exit(53)
+    # def CheckType(var, expectedType):
+    #     if expectedType == "int" and isinstance(var, int):
+    #         return True
+    #     elif expectedType == "float" and isinstance(var, float):
+    #         return True
+    #     elif expectedType == "bool" and isinstance(var, bool):
+    #         return True
+    #     elif expectedType == "str" and isinstance(var, str):
+    #         return True
+    #     else:
+    #         exit(53)
 
     def GetType(self, numOfArg):
         i = self.NumOfInstr
@@ -524,11 +534,9 @@ class Instructions:
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else: # set new value to the variable
-            try:
-                value = int(symb1.value) + int(symb2.value)
-                self.SetVariable(self.GetVarName(0), "int", value)
-            except:
-                exit(53)
+            value = int(symb1.value) + int(symb2.value)
+            self.SetVariable(self.GetVarName(0), "int", value)
+
     
     def SUB(self):
         i = self.NumOfInstr
@@ -542,11 +550,10 @@ class Instructions:
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else:
-            try:
-                value = int(symb1.value) - int(symb2.value)
-                self.SetVariable(self.GetVarName(0), "int", value)
-            except:
-                exit(53)
+            #todo check if i should not put here try except
+            value = int(symb1.value) - int(symb2.value)
+            self.SetVariable(self.GetVarName(0), "int", value)
+
             
                     
     def MUL(self):
@@ -561,11 +568,9 @@ class Instructions:
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         else:
-            try:
-                value = int(symb1.value) * int(symb2.value)
-                self.SetVariable(self.GetVarName(0), "int", value)
-            except:
-                exit(53)
+            #todo check if i should not put here try except
+            value = int(symb1.value) * int(symb2.value)
+            self.SetVariable(self.GetVarName(0), "int", value)
             
     def IDIV(self):
         i = self.NumOfInstr
@@ -581,11 +586,9 @@ class Instructions:
         elif(int(symb2.value) == 0):
             exit(57)
         else:
-            try:
-                value = int(symb1.value) // int(symb2.value)
-                self.SetVariable(self.GetVarName(0), "int", value)
-            except:
-                exit(53)
+            #todo check if i should not put here try except
+            value = int(symb1.value) // int(symb2.value)
+            self.SetVariable(self.GetVarName(0), "int", value)
 #     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
 # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
 # string) a do ⟨var⟩ zapíše výsledek typu bool (false při neplatnosti nebo true v případě platnosti
@@ -867,7 +870,7 @@ class Instructions:
                     EscapeMode = False
                     EscapeCode = ""
             # běžný tisknutelný znak
-            elif char not in ['\n', '\r', '\t', ' ', '#', '\\']:
+            elif char not in [' ', '#', '\\']:
                 result += char
             # začátek escape sekvence
             elif char == '\\':
@@ -900,7 +903,7 @@ class Instructions:
             print("true", end="")
         elif(symb1.value == False):
             print("false", end="")
-        elif(symb1.value == "nil@nil"):
+        elif(symb1.type == "nil"):
             print("", end="")
         else:
             string = str(symb1.value)
@@ -943,8 +946,13 @@ class Instructions:
         # check if symb1 is string
         if(symb1.type != "string"):
             exit(53)
+            
+        if(symb1.value == None):
+            value = 0
+            print("value: ", value)
+        else:
+            value = len(symb1.value)  
         
-        value = len(symb1.value)
         self.SetVariable(self.GetVarName(0), "int", value)
 #     GETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Vrať znak řetězce
 # Do ⟨var⟩ uloží řetězec z jednoho znaku v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩ (indexováno celým
@@ -1013,17 +1021,17 @@ class Instructions:
         
         # var
         if(symbType == "var"):
-            symb = self.GetVariable(self.GetVarName(1))
+            symb = self.GetVariable(self.GetVarName(1),True)
             
         # symb
         else:
             symb = self.GetSymb(1)
             
-        # check if symb is not nil
-        if(symb.type == "nil"):
-            value = ""
-        else:
+        if(symb.type != None):
             value = symb.type
+        else:
+            value = ""
+            
         self.SetVariable(self.GetVarName(0), "string", value)
 # LABEL ⟨label⟩ Definice návěští
 # Speciální instrukce označující pomocí návěští ⟨label⟩ důležitou pozici v kódu jako potenciální cíl
