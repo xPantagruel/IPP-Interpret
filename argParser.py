@@ -8,6 +8,8 @@ class ArgParse:
         self.parser.add_argument('--source', metavar='file', type=str, help='Vstupní soubor s XML reprezentací zdrojového kódu.')
         self.parser.add_argument('--input', metavar='file', type=str, help='Soubor se vstupy pro interpretaci zadaného zdrojového kódu.')
         self.args = self.parser.parse_args()
+        self.input = None
+        self.source = None
 
     def run(self):
         if self.args.source is None and self.args.input is None:
@@ -15,15 +17,14 @@ class ArgParse:
 
         if self.args.source:
             with open(self.args.source, 'r') as f:
-                source_data = f.read()
+                self.source = f
         else:
-            source_data = sys.stdin.read()
-
+            self.source = sys.stdin
         if self.args.input:
             with open(self.args.input, 'r') as f:
-                input_data = f.read()
+                self.input = f
         else:
-            input_data = sys.stdin.read()
+            self.input = sys.stdin
 
         #kontrola zda jsou spravne nazvy souboru
         if self.args.source:
@@ -34,13 +35,7 @@ class ArgParse:
                 exit(11)
 
     def GetSourceFile(self):
-        if self.args.source:
-            return open(self.args.source, 'r')
-        else:
-            return sys.stdin
+        return self.source
 
     def GetInputFile(self):
-        if self.args.input:
-            return open(self.args.input, 'r')
-        else:
-            return sys.stdin
+        return self.input
