@@ -33,7 +33,7 @@ class Label:
         self.row = row
 #------------------------------- Class Interpret --------------------------------
 class Interpret():
-    def __init__(self, Instructions, InputType="stdin"):
+    def __init__(self, Instructions, InputType=sys.stdin):
         self.Instructions = Instructions
         self.LabelList = []
         self.InputT = InputType
@@ -56,7 +56,7 @@ class Interpret():
 
 #------------------------------- Class Instructions --------------------------------
 class Instructions:
-    def __init__(self, Instructions, LabelList, InputType="stdin"):
+    def __init__(self, Instructions, LabelList, InputType=sys.stdin):
         self.LabelList = LabelList
         self.GlobalFrameList = [] 
         self.Instructions = Instructions
@@ -1038,7 +1038,7 @@ class Instructions:
         
         # var
         if(symbType == "var"):
-            symb = self.GetVariable(self.GetVarName(1),True)
+            symb = self.GetVariable(self.GetVarName(1),False)
             
         # symb
         else:
@@ -1074,36 +1074,36 @@ class Instructions:
         Label = self.GetValue(0)
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
-            
+        
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             
             if(symb1.type == "string" and symb2.type == "string"):
-                Equal = symb1.value == symb1.value
+                Equal = symb1.value == symb2.value
             elif(symb1.type == "int" and symb2.type == "int"):
                 try:
                     Equal = int(symb1.value) == int(symb2.value)
                 except:
-                    print("chyba")
                     exit(53)
             elif(symb1.type == "bool" and symb2.type == "bool"):
                 try:
-                    Equal = bool(symb1.value) == bool(symb2.value)
+                    Equal = symb1.value == symb2.value
                 except:
-                    print("chyba")
                     exit(53)
             elif(symb1.type == "nil" or symb2.type == "nil"):
-                Equal = "true"
+                if(symb1.value == symb2.value):
+                    Equal = True 
+                else:
+                    Equal = False
             else:
                 exit(52)
             
-            if(Equal):
-                for j in range(len(self.LabelList)):
-                    if(self.LabelList[j].name == Label):
+            for j in range(len(self.LabelList)):
+                if(self.LabelList[j].name == Label):
+                    if(Equal == True):
                         self.NumOfInstr = self.LabelList[j].row  
-                        return
-                exit(52)
+                    return
+            exit(52)
         else:
             exit(53)
                 
@@ -1111,34 +1111,36 @@ class Instructions:
         Label = self.GetValue(0)
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
-
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        
+        if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             
-        if(symb1.type == symb2.type):
-            
-            if(symb1.type == "string"):
-                Equal = symb1.value != symb1.value
-            elif(symb1.type == "int"):
+            if(symb1.type == "string" and symb2.type == "string"):
+                Equal = symb1.value != symb2.value
+            elif(symb1.type == "int" and symb2.type == "int"):
                 try:
                     Equal = int(symb1.value) != int(symb2.value)
                 except:
                     exit(53)
-            elif(symb1.type == "bool"):
+            elif(symb1.type == "bool" and symb2.type == "bool"):
                 try:
-                    Equal = bool(symb1.value) != bool(symb2.value)
+                    Equal = symb1.value != symb2.value
                 except:
                     exit(53)
             elif(symb1.type == "nil" or symb2.type == "nil"):
-                Equal = True
+                if(symb1.value != symb2.value):
+                    Equal = True 
+                else:
+                    Equal = False
             else:
                 exit(52)
             
-            if(Equal):
-                for j in range(len(self.LabelList)):
-                    if(self.LabelList[j].name == Label):
+            for j in range(len(self.LabelList)):
+                if(self.LabelList[j].name == Label):
+                    if(Equal == True):
                         self.NumOfInstr = self.LabelList[j].row  
-                        return
-                exit(52)
+                    return
+            exit(52)
         else:
             exit(53)
 
