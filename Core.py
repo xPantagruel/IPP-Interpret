@@ -73,7 +73,6 @@ class Instructions:
             # print("self." + self.Instructions[self.NumOfInstr].opcode + "()")
             Instr=self.Instructions[self.NumOfInstr].opcode
             
-            # print("Instr: " + Instr)
             # create switch case
             if Instr == "MOVE":
                 self.NumOfArgCheck(2)
@@ -130,7 +129,7 @@ class Instructions:
                 self.NumOfArgCheck(3)
                 self.OR()
             elif Instr == "NOT":
-                self.NumOfArgCheck(3)
+                self.NumOfArgCheck(2)
                 self.NOT()
             elif Instr == "INT2CHAR":
                 self.NumOfArgCheck(2)
@@ -253,7 +252,9 @@ class Instructions:
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
-                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)#TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST 
+                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)#TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST
+                    # self.LocalFramesStack.pop()
+                    # self.LocalFramesStack.push(TopList)
                     return
 
             exit(54)    
@@ -301,9 +302,9 @@ class Instructions:
     def ChangeVarType(self, newVarType, newVarValue):
         if(newVarType == "bool"):
             if(newVarValue == "true"):
-                newVarValue = True
+                newVarValue = "true"
             elif(newVarValue == "false"):
-                newVarValue = False
+                newVarValue = "false"
             else:
                 exit(53)
         elif(newVarType == "int"):
@@ -374,15 +375,15 @@ class Instructions:
     
     def GetSymb(self, numOfArg):
         i = self.NumOfInstr
-        var = Variable("Symb", self.Instructions[i].args[numOfArg].type, self.Instructions[i].args[numOfArg].value)
+        symbVal = self.Instructions[i].args[numOfArg].value
+        symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
+        var = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
         return var
 #-------------------------------------- INSTRUCTIONS --------------------------------------
 #MOVE ⟨var⟩ ⟨symb⟩ 
 # Zkopíruje hodnotu ⟨symb⟩ do ⟨var⟩. Např. MOVE LF@par GF@var provede zkopírování hodnoty
 # proměnné var v globálním rámci do proměnné par v lokálním rámci.
     def MOVE(self):
-        i = self.NumOfInstr
-        
         # move var symb
         if(self.GetType(0) == "var" and self.GetType(1) != "var"):
             # Check if variable is in frame
@@ -431,6 +432,8 @@ class Instructions:
             self.TemporaryFrames = self.LocalFramesStack.pop()
             self.FrameType = "TF"
             
+            if(self.LocalFramesStack.IsEmpty()):
+                exit(55)
             # replace LF@ to TF@
             for i in range(len(self.TemporaryFrames)):
                 self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("LF@", "TF@")
@@ -484,6 +487,9 @@ class Instructions:
             exit(55)
     
     # update NumberOfInstruction to the row of the labelv
+#     CALL ⟨label⟩ Skok na návěští s podporou návratu
+# Uloží inkrementovanou aktuální pozici z interního čítače instrukcí do zásobníku volání a provede
+# skok na zadané návěští (případnou přípravu rámce musí zajistit jiné instrukce).
     def CALL(self):
         # save the current position of the instruction into stack
         self.CallStack.push(self.NumOfInstr)
@@ -494,6 +500,10 @@ class Instructions:
                 self.NumOfInstr = self.LabelList[i].row
                 break
             
+# RETURN Návrat na pozici uloženou instrukcí CALL
+# Vyjme pozici ze zásobníku volání a skočí na tuto pozici nastavením interního čítače instrukcí
+# (úklid lokálních rámců musí zajistit jiné instrukce). Provedení instrukce při prázdném zásobníku
+# volání vede na chybu 56.
     def RETURN(self):
         if(self.CallStack.IsEmpty()):
             exit(56)
@@ -523,8 +533,6 @@ class Instructions:
     # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ 
     # int check
     def ADD(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -539,8 +547,6 @@ class Instructions:
 
     
     def SUB(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -557,8 +563,6 @@ class Instructions:
             
                     
     def MUL(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -573,8 +577,6 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "int", value)
             
     def IDIV(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -595,10 +597,8 @@ class Instructions:
 # odpovídající relace). Řetězce jsou porovnávány lexikograficky a false je menší než true. Pro
 # výpočet neostrých nerovností lze použít AND/OR/NOT. S operandem typu nil (další zdrojový
 # operand je libovolného typu) lze porovnávat pouze instrukcí EQ, jinak chyba 53.
-    
+
     def LT(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -610,27 +610,25 @@ class Instructions:
         else:
             if(symb1.type == "int"):
                 if(int(symb1.value) < int(symb2.value)):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "bool"):
                 if(symb1.value == "false" and symb2.value == "true"):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "string"):
                 if(symb1.value < symb2.value):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             else:
                 exit(53)
                 
             self.SetVariable(self.GetVarName(0), "bool", value)
     
     def GT(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -642,27 +640,25 @@ class Instructions:
         else:
             if(symb1.type == "int"):
                 if(int(symb1.value) > int(symb2.value)):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "bool"):
                 if(symb1.value == "true" and symb2.value == "false"):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "string"):
                 if(symb1.value > symb2.value):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             else:
                 exit(53)
                 
             self.SetVariable(self.GetVarName(0), "bool", value)
 
     def EQ(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -675,19 +671,19 @@ class Instructions:
         else:
             if(symb1.type == "int"):
                 if(int(symb1.value) == int(symb2.value)):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "bool"):
                 if(symb1.value == symb2.value):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             elif(symb1.type == "string"):
                 if(symb1.value == symb2.value):
-                    value = True
+                    value = "true"
                 else:
-                    value = False
+                    value = "false"
             else:
                 exit(53)
                 
@@ -699,8 +695,6 @@ class Instructions:
 # ⟨var⟩.
 
     def AND(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -711,15 +705,13 @@ class Instructions:
             exit(53)
         else:
             if(symb1.value == "true" and symb2.value == "true"):
-                value = True
+                value = "true"
             else:
-                value = False
+                value = "false"
                 
             self.SetVariable(self.GetVarName(0), "bool", value)
             
     def OR(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -730,15 +722,13 @@ class Instructions:
             exit(53)
         else:
             if(symb1.value == "true" or symb2.value == "true"):
-                value = True
+                value = "true"
             else:
-                value = False
+                value = "false"
                 
             self.SetVariable(self.GetVarName(0), "bool", value)
 
     def NOT(self):
-        i = self.NumOfInstr
-        
         symbType1 = self.GetType(1)
         
         # var
@@ -757,9 +747,9 @@ class Instructions:
             exit(53)
         else:
             if(symb1.value == "true"):
-                value = False
+                value = "false"
             else:
-                value = True
+                value = "true"
                 
             self.SetVariable(self.GetVarName(0), "bool", value)
     
@@ -795,21 +785,21 @@ class Instructions:
 # Do ⟨var⟩ uloží ordinální hodnotu znaku (dle Unicode) v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩
 # (indexováno od nuly). Indexace mimo daný řetězec vede na chybu 58. Viz funkce ord v Python 3.
     def STRI2INT(self):
-        i = self.NumOfInstr
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
         
         # check if symb1 and symb2 are both int types
-        if(symb1.type != symb2.type or symb1.type != "int"):
+        if(symb1.type != "string" or symb2.type != "int"):
             exit(53)
         
-        if(symb1.value < 0 or symb2.value < 0):
-            exit(58)
-        
+        # string outrange
+        if(int(symb2.value) >= len(symb1.value) or int(symb2.value) < 0):
+            exit(58)        
+
         try:
-            value = ord(self.GetVariable(self.GetVarName(1)).value[symb2.value])
+            value = ord(symb1.value[int(symb2.value)])
             self.SetVariable(self.GetVarName(0), "int", value)
         except ValueError:
             exit(58)
@@ -822,7 +812,6 @@ class Instructions:
 # true“ se převádí na bool@true, vše ostatní na bool@false. V případě
 # chybného nebo chybějícího vstupu bude do proměnné ⟨var⟩ uložena hodnota nil@nil
     def READ(self): # todo i have to decide if the input is from file or console
-        i = self.NumOfInstr
         type = self.GetValue(1)
         
         if(type == "int"):
@@ -899,9 +888,9 @@ class Instructions:
         else:
             exit(53)
         
-        if(symb1.value == True):
+        if(symb1.value == "true"):
             print("true", end="")
-        elif(symb1.value == False):
+        elif(symb1.value == "false"):
             print("false", end="")
         elif(symb1.type == "nil"):
             print("", end="")
@@ -949,7 +938,6 @@ class Instructions:
             
         if(symb1.value == None):
             value = 0
-            print("value: ", value)
         else:
             value = len(symb1.value)  
         
@@ -968,13 +956,15 @@ class Instructions:
         if(symb1.type != "string" or symb2.type != "int"):
             exit(53)
         
+        # check if symb2 is in range of symb1
+        if(int(symb2.value) < 0 or int(symb2.value) >= len(symb1.value)):
+            exit(58)
+                
         try:
             value = symb1.value[int(symb2.value)]
         except IndexError:
             exit(58)
 
-        
-        value = symb1.value[symb2.value]
         self.SetVariable(self.GetVarName(0), "string", value)
 
 # SETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Změň znak řetězce
@@ -990,28 +980,28 @@ class Instructions:
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
 
         # check if var, symb2 is string type
-        if(var.type != symb2.type or var.type != "string"):
+        if(var.type != symb2.type or var.type != "string" or symb1.type != "int"):
             exit(53)
-
+           
         # check if symb2 is in range
-        if(symb1.value < 0 or symb1.value >= len(var.value)):
+        if(int(symb1.value) < 0 or int(symb1.value) >= len(var.value)):
+
             exit(58)
         
         # check if symb2 is empty
-        if(len(symb2.value) == 0):
+        if(symb2.value == None):
             exit(58)
             
         # check if len of var is less then symb1 value
-        if(len(var.value) <= symb1.value):
+        if(len(var.value) < int(symb1.value)):
             exit(58)
         
-        prefix = var.value[:symb1.value]
-        suffix = var.value[symb1.value + 1:]
-        new_value = prefix + symb2.value[0] + suffix
-        value = new_value
+        # case if symb2 is in format \ddd
+        symb2Val = self.ConvertStringLiterals(symb2.value)
+        
+        value = var.value[:int(symb1.value)] + symb2Val[0] + var.value[int(symb1.value)+1:]
 
         self.SetVariable(self.GetVarName(0), "string", value)
-
 # TYPE ⟨var⟩ ⟨symb⟩ Zjisti typ daného symbolu
 # Dynamicky zjistí typ symbolu ⟨symb⟩ a do ⟨var⟩ zapíše řetězec značící tento typ (int, bool,
 # string nebo nil). Je-li ⟨symb⟩ neinicializovaná proměnná, označí její typ prázdným řetězcem
@@ -1060,22 +1050,24 @@ class Instructions:
 
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
             
-        if(symb1.type == symb2.type):
+        if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             
-            if(symb1.type == "string"):
+            if(symb1.type == "string" and symb2.type == "string"):
                 Equal = symb1.value == symb1.value
-            elif(symb1.type == "int"):
+            elif(symb1.type == "int" and symb2.type == "int"):
                 try:
                     Equal = int(symb1.value) == int(symb2.value)
                 except:
+                    print("chyba")
                     exit(53)
-            elif(symb1.type == "bool"):
+            elif(symb1.type == "bool" and symb2.type == "bool"):
                 try:
                     Equal = bool(symb1.value) == bool(symb2.value)
                 except:
+                    print("chyba")
                     exit(53)
             elif(symb1.type == "nil" or symb2.type == "nil"):
-                Equal = True
+                Equal = "true"
             else:
                 exit(52)
             
@@ -1085,6 +1077,8 @@ class Instructions:
                         self.NumOfInstr = self.LabelList[j].row  
                         return
                 exit(52)
+        else:
+            exit(53)
                 
     def JUMPIFNEQ(self):
         Label = self.GetValue(0)
@@ -1118,18 +1112,39 @@ class Instructions:
                         self.NumOfInstr = self.LabelList[j].row  
                         return
                 exit(52)
+        else:
+            exit(53)
 
 # DPRINT ⟨symb⟩ Výpis hodnoty na stderr
 # Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
     def DPRINT(self) :
-        symb = self.GetSymb(0)
+        symbType1 = self.GetType(0)
+        
+        if(symbType1 == "var"):
+            symb = self.GetVariable(self.GetVarName(0))
+        elif(symbType1 != "var"):
+            symb = self.GetSymb(0)
+        else:
+            exit(52)
+            
         print(symb.value, file=sys.stderr)
     
 # Ukončí vykonávání programu, případně vypíše statistiky a ukončí interpret s návratovým kódem
 # ⟨symb⟩, kde ⟨symb⟩ je celé číslo v intervalu 0 až 49 (včetně). Nevalidní celočíselná hodnota
 # ⟨symb⟩ vede na chybu 57.
     def EXIT(self):
-        symb = self.GetSymb(0)
+        symbType1 = self.GetType(0)
+        
+        if(symbType1 == "var"):
+            symb = self.GetVariable(self.GetVarName(0))
+        elif(symbType1 != "var"):
+            symb = self.GetSymb(0)
+        else:
+            exit(52)
+        
+        if(symb.type != "int"):
+            exit(53)
+        
         try:
             code = int(symb.value)
         except:
