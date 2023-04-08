@@ -20,10 +20,11 @@ class Stack:
 
 
 class Variable:
-    def __init__(self, name, type=None, value=None):
+    def __init__(self, name, type=None, value=None, isInicialized=False):
         self.name = name
         self.type = type
         self.value = value
+        self.isInicialized = isInicialized
 
 class Label:
     def __init__(self, name, value,row):
@@ -194,13 +195,13 @@ class Instructions:
         if(len(self.Instructions[self.NumOfInstr].args) != numOfArgs):
             exit(32) 
             
-    def GetVariable(self, varName, TypeOpiton=False ):
+    def GetVariable(self, varName, IsInicialized=True ):
         # print("---GetVariable-" + varName)
         if(varName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
-                    if(not TypeOpiton):
-                        if(self.GlobalFrameList[i].value == None):# check if variable is defined
+                    if(IsInicialized):
+                        if(self.GlobalFrameList[i].isInicialized == False):# check if variable is defined
                             exit(56)
                     return self.GlobalFrameList[i]
                 
@@ -215,8 +216,8 @@ class Instructions:
             # print(TopList[0].name)
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
-                    if(not TypeOpiton):
-                        if(TopList[i].value == None):# check if variable is defined
+                    if(IsInicialized):
+                        if(TopList[i].isInicialized == False):# check if variable is defined
                             exit(56)
                     return TopList[i]
                 
@@ -226,8 +227,8 @@ class Instructions:
                 
             for i in range(len(self.TemporaryFrames)):
                 if(self.TemporaryFrames[i].name == varName):
-                    if(not TypeOpiton):
-                        if(self.TemporaryFrames[i].value == None):# check if variable is defined
+                    if(IsInicialized):
+                        if(self.TemporaryFrames[i].isInicialized == False):# check if variable is defined
                             exit(56)
                     return self.TemporaryFrames[i]
                 
@@ -240,6 +241,8 @@ class Instructions:
                 if(self.GlobalFrameList[i].name == varName):
                     self.GlobalFrameList[i].type = newVarType
                     self.GlobalFrameList[i].value = self.ChangeVarType(newVarType, newVarValue)
+                    if(self.GlobalFrameList[i].isInicialized == False): # nastaveni inicializace
+                        self.GlobalFrameList[i].isInicialized = True
                     return
             exit(54)
             
@@ -253,8 +256,10 @@ class Instructions:
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
                     TopList[i].value = self.ChangeVarType(newVarType, newVarValue)#TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST
-                    # self.LocalFramesStack.pop()
-                    # self.LocalFramesStack.push(TopList)
+                    if(TopList[i].isInicialized == False):
+                        TopList[i].isInicialized = True
+                    self.LocalFramesStack.pop()
+                    self.LocalFramesStack.push(TopList)
                     return
 
             exit(54)    
@@ -266,6 +271,8 @@ class Instructions:
                 if(self.TemporaryFrames[i].name == varName):
                     self.TemporaryFrames[i].value = self.ChangeVarType(newVarType, newVarValue)
                     self.TemporaryFrames[i].type = newVarValue
+                    if(self.TemporaryFrames[i].isInicialized == False):
+                        self.TemporaryFrames[i].isInicialized = True
                     return
             exit(54)
         else:
@@ -313,6 +320,8 @@ class Instructions:
             except ValueError:
                 exit(53)
         elif(newVarType == "string"):
+            if(newVarValue == None):
+                return newVarValue
             try:
                 newVarValue = str(newVarValue)
             except ValueError:
@@ -376,6 +385,10 @@ class Instructions:
     def GetSymb(self, numOfArg):
         i = self.NumOfInstr
         symbVal = self.Instructions[i].args[numOfArg].value
+        
+        if(symbVal == None):# empty symb
+            return Variable("Symb", self.Instructions[i].args[numOfArg].type)
+        
         # string
         if(self.Instructions[i].args[numOfArg].type == "string"):
             symbVal = self.ConvertStringLiterals(str(symbVal))
@@ -622,7 +635,7 @@ class Instructions:
                 else:
                     value = "false"
             elif(symb1.type == "string" and symb2.type == "string"):
-                if(symb1.value < symb2.value):
+                if(str(symb1.value) < str(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
@@ -652,7 +665,7 @@ class Instructions:
                 else:
                     value = "false"
             elif(symb1.type == "string" and symb2.type == "string"):
-                if(symb1.value > symb2.value):
+                if(str(symb1.value) > str(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
@@ -680,7 +693,7 @@ class Instructions:
                 else:
                     value = "false"
             elif(symb1.type == "string" and symb2.type == "string"):
-                if(symb1.value == symb2.value):
+                if(str(symb1.value) == str(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
@@ -910,7 +923,6 @@ class Instructions:
 # Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
 # ⟨symb2⟩ (jiné typy nejsou povoleny).
     def CONCAT(self):
-        i = self.NumOfInstr
         symbType1 = self.GetType(1)
         symbType2 = self.GetType(2)
         
@@ -920,7 +932,15 @@ class Instructions:
         if(symb1.type != symb2.type or symb1.type != "string"):
             exit(53)
         
-        value = symb1.value + symb2.value
+        if(symb1.value == None and symb2.value == None):
+            value = ""
+        elif(symb1.value == None):
+            value = symb2.value
+        elif(symb2.value == None):
+            value = symb1.value
+        else:
+            value = str(symb1.value) + str(symb2.value)
+            
         self.SetVariable(self.GetVarName(0), "string", value)
 # STRLEN ⟨var⟩ ⟨symb⟩ Zjisti délku řetězce
 # Zjistí počet znaků (délku) řetězce v ⟨symb⟩ a tato délka je uložena jako celé číslo do ⟨var⟩.
