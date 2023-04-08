@@ -5,8 +5,8 @@ import os
 class ArgParse:
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='Popis programu.')
-        self.parser.add_argument('--source', metavar='file', type=str, help='Vstupní soubor s XML reprezentací zdrojového kódu.')
-        self.parser.add_argument('--input', metavar='file', type=str, help='Soubor se vstupy pro interpretaci zadaného zdrojového kódu.')
+        self.parser.add_argument('--source',  help='Vstupní soubor s XML reprezentací zdrojového kódu.')
+        self.parser.add_argument('--input', help='Soubor se vstupy pro interpretaci zadaného zdrojového kódu.')
         self.args = self.parser.parse_args()
         self.input = None
         self.source = None
@@ -14,28 +14,30 @@ class ArgParse:
     def run(self):
         if self.args.source is None and self.args.input is None:
             exit(10)
-
-        if self.args.source:
-            with open(self.args.source, 'r') as f:
-                self.source = f
+            
+        if self.args.source is not None:
+            try:
+                self.source = open(self.args.source, 'r')
+            except:
+                exit(11)
         else:
             self.source = sys.stdin
-        if self.args.input:
-            with open(self.args.input, 'r') as f:
-                self.input = f
+            
+        if self.args.input is not None:
+            try:
+                self.input = open(self.args.input, 'r')
+            except:
+                exit(11)
         else:
             self.input = sys.stdin
-
-        #kontrola zda jsou spravne nazvy souboru
-        if self.args.source:
-            if not os.path.exists(self.args.source):
-                exit(11)
-        if self.args.input:
-            if not os.path.exists(self.args.input):
-                exit(11)
+            
 
     def GetSourceFile(self):
         return self.source
 
     def GetInputFile(self):
         return self.input
+
+    def CloseF(self):
+        self.source.close()
+        self.input.close()

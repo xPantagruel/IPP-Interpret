@@ -13,6 +13,8 @@ def main():
     instructionsList = xml_parser.get_instructions()
     InterpretInstance = Interpret(instructionsList,argparser.GetInputFile())
     InterpretInstance.Interpretation()
+    
+    argparser.CloseF()
 
 if __name__ == '__main__':
     main()
