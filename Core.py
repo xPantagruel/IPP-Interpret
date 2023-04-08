@@ -376,6 +376,9 @@ class Instructions:
     def GetSymb(self, numOfArg):
         i = self.NumOfInstr
         symbVal = self.Instructions[i].args[numOfArg].value
+        # string
+        if(self.Instructions[i].args[numOfArg].type == "string"):
+            symbVal = self.ConvertStringLiterals(str(symbVal))
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
         var = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
         return var
@@ -608,17 +611,17 @@ class Instructions:
         if(symb1.type != symb2.type):
             exit(53)
         else:
-            if(symb1.type == "int"):
+            if(symb1.type == "int" and symb2.type == "int"):
                 if(int(symb1.value) < int(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "bool"):
+            elif(symb1.type == "bool" and symb2.type == "bool"):
                 if(symb1.value == "false" and symb2.value == "true"):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "string"):
+            elif(symb1.type == "string" and symb2.type == "string"):
                 if(symb1.value < symb2.value):
                     value = "true"
                 else:
@@ -638,17 +641,17 @@ class Instructions:
         if(symb1.type != symb2.type):
             exit(53)
         else:
-            if(symb1.type == "int"):
+            if(symb1.type == "int" and symb2.type == "int"):
                 if(int(symb1.value) > int(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "bool"):
+            elif(symb1.type == "bool" and symb2.type == "bool"):
                 if(symb1.value == "true" and symb2.value == "false"):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "string"):
+            elif(symb1.type == "string" and symb2.type == "string"):
                 if(symb1.value > symb2.value):
                     value = "true"
                 else:
@@ -663,31 +666,35 @@ class Instructions:
         symbType2 = self.GetType(2)
         
         symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
-
         
         # check if symb1 and symb2 are both int types
-        if(symb1.type != symb2.type):
-            exit(53)
-        else:
-            if(symb1.type == "int"):
+        if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
+            if(symb1.type == "int" and symb2.type == "int"):
                 if(int(symb1.value) == int(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "bool"):
+            elif(symb1.type == "bool" and symb2.type == "bool"):
                 if(symb1.value == symb2.value):
                     value = "true"
                 else:
                     value = "false"
-            elif(symb1.type == "string"):
+            elif(symb1.type == "string" and symb2.type == "string"):
                 if(symb1.value == symb2.value):
+                    value = "true"
+                else:
+                    value = "false"
+            elif(symb1.type == "nil" or symb2.type == "nil"):
+                if(symb1.type == symb2.type):
                     value = "true"
                 else:
                     value = "false"
             else:
                 exit(53)
-                
-            self.SetVariable(self.GetVarName(0), "bool", value)
+        else:
+            exit(53)
+            
+        self.SetVariable(self.GetVarName(0), "bool", value)
             
 #     AND/OR/NOT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Základní booleovské operátory
 # Aplikuje konjunkci (logické A)/disjunkci (logické NEBO) na operandy typu bool ⟨symb1⟩ a
