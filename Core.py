@@ -270,7 +270,7 @@ class Instructions:
             for i in range(len(self.TemporaryFrames)):
                 if(self.TemporaryFrames[i].name == varName):
                     self.TemporaryFrames[i].value = self.ChangeVarType(newVarType, newVarValue)
-                    self.TemporaryFrames[i].type = newVarValue
+                    self.TemporaryFrames[i].type = newVarType
                     if(self.TemporaryFrames[i].isInicialized == False):
                         self.TemporaryFrames[i].isInicialized = True
                     return
@@ -448,11 +448,12 @@ class Instructions:
             self.TemporaryFrames = self.LocalFramesStack.pop()
             self.FrameType = "TF"
             
-            if(self.LocalFramesStack.IsEmpty()):
-                exit(55)
             # replace LF@ to TF@
+        if(self.TemporaryFrames != None):
             for i in range(len(self.TemporaryFrames)):
                 self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("LF@", "TF@")
+        else:
+            exit(55)# todo check this if its neccesary
             
     def DEFVAR(self):
         # I have 3 cases - var@GF, var@LF, var@TF
@@ -514,7 +515,9 @@ class Instructions:
         for i in range(len(self.LabelList)):
             if(self.LabelList[i].name == self.Instructions[self.NumOfInstr].args[0].value):
                 self.NumOfInstr = self.LabelList[i].row
-                break
+                return
+        exit(52)
+        
             
 # RETURN Návrat na pozici uloženou instrukcí CALL
 # Vyjme pozici ze zásobníku volání a skočí na tuto pozici nastavením interního čítače instrukcí
@@ -833,29 +836,30 @@ class Instructions:
 # chybného nebo chybějícího vstupu bude do proměnné ⟨var⟩ uložena hodnota nil@nil
     def READ(self): # todo i have to decide if the input is from file or console
         type = self.GetValue(1)
-        
         if(type == "int"):
             try:
-                value = self.Input.read()
-                # self.CheckType(value, "int")
-                self.SetVariable(self.GetVarName(0), "int", value)
+                value = self.Input.readline().rstrip()
+                self.SetVariable(self.GetVarName(0), "int", int(value))
             except ValueError:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "string"):
-            value = self.Input.read()
-            self.SetVariable(self.GetVarName(0), "string", value)
-            
-        elif(type == "bool"):
             try:
-                value = self.Input.read()
-                if(value == "true"):
+                value = self.Input.readline().rstrip()
+                self.SetVariable(self.GetVarName(0), "string", str(value))
+            except ValueError:
+                self.SetVariable(self.GetVarName(0), "nil", "nil")
+                
+        elif(type == "bool"):# todo figure out if the input is not true shoudl i put in false or nil? 
+            try:
+                value = self.Input.readline().rstrip()
+                if(value.lower() == "true"):
                     value = "true"
                 else:
                     value = "false"
                 self.SetVariable(self.GetVarName(0), "bool", value)
             except ValueError:
-                self.SetVariable(self.GetVarName(0), "nil", "nil")
+                self.SetVariable(self.GetVarName(0), "bool", "false")
         else:
             exit(53)
         
@@ -915,9 +919,7 @@ class Instructions:
         elif(symb1.type == "nil"):
             print("", end="")
         else:
-            string = str(symb1.value)
-            converted_str = self.ConvertStringLiterals(string)
-            print(converted_str, end="")
+            print(symb1.value, end="")
     
 #     CONCAT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Konkatenace dvou řetězců
 # Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
