@@ -53,3 +53,22 @@ I should look at changing type of variable
 - podivat se na to kdyz pristupuju do lokalniho ramce co vse musi byt splneno 
 - TODO FIX BUG KDYZ PRISTUPUJU DO FRAME LOCAL MEL BYCH PRI EDITU VARIABLE SI VYTAHNOUT ZMENIT A VRATIT ZPET DO STACKU 
 - test read pokud bude input file nebo stdin
+- otestovat BREAK A DPRINT
+
+TEST FAILURES:
+    both/functionCalls
+                        /functions10
+                        /functions12    - problem in xmlParser in getting root
+                        /functions4     
+                        /functions5
+                        /functions9
+    both/eq  
+                        /eq2
+    both/read       
+                        /read_badval    - i think the Expected output is bad 
+
+    interpret-only/arithmetic
+                                /incorrectInt   - i think the return type should be 53 not 32
+    /interpret-only/32
+                                /missing_argument
+                                /write_test     - I exit with 32 and before that i write out 0 and it takes as a failed test 

@@ -1141,21 +1141,6 @@ class Instructions:
             exit(52)
         else:
             exit(53)
-
-# DPRINT ⟨symb⟩ Výpis hodnoty na stderr
-# Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
-    def DPRINT(self) :
-        symb = self.GetSymbVars(0)
-        symbType1 = self.GetType(0)
-        
-        if(symbType1 == "var"):
-            symb = self.GetVariable(self.GetVarName(0))
-        elif(symbType1 != "var"):
-            symb = self.GetSymb(0)
-        else:
-            exit(53)
-            
-        print(symb.value, file=sys.stderr)
     
 # Ukončí vykonávání programu, případně vypíše statistiky a ukončí interpret s návratovým kódem
 # ⟨symb⟩, kde ⟨symb⟩ je celé číslo v intervalu 0 až 49 (včetně). Nevalidní celočíselná hodnota
@@ -1182,62 +1167,17 @@ class Instructions:
     def BREAK(self):
         print("NumOfInstr: ", self.NumOfInstr, file=sys.stderr)
         print("GlobalFrameList: ", self.GlobalFrameList, file=sys.stderr)
-        for var in self.LocalFramesStack:
-            print("LocalFrameList: ", var, file=sys.stderr)
-        print("TempFrameList: ", self.TempFrameList[0], file=sys.stderr)
+        print("TempFrameList: ", self.TemporaryFrames, file=sys.stderr)
         print("CallStack: ", self.CallStack, file=sys.stderr)
         print("DataStack: ", self.DataStack, file=sys.stderr)
         print("LabelList: ", self.LabelList, file=sys.stderr)
-        
+
+# DPRINT ⟨symb⟩ Výpis hodnoty na stderr
+# Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
+    def DPRINT(self) :
+        symb = self.GetSymbVars(0)
+            
+        print(symb.value, file=sys.stderr)
+              
     def CLEARS(self):
         self.DataStack.Clears()
-#------------------------------------- STACK Instructions ---------------------------------------------------
-
-    # def ADDS(self):
-    #     symb2 = self.DataStack.pop()
-    #     symb1 = self.DataStack.pop()
-            
-    #     # check if symb1 and symb2 are both int types
-    #     if(symb1.type != "int" or symb2.type != "int"):
-    #         exit(53)
-    #     else: # set new value to the variable
-    #         value = int(symb1.value) + int(symb2.value)
-    #         self.DataStack.push(Variable(None,"int", value))
-            
-    # def SUBS(self):
-    #     symb2 = self.DataStack.pop()
-    #     symb1 = self.DataStack.pop()
-            
-    #     # check if symb1 and symb2 are both int types
-    #     if(symb1.type != "int" or symb2.type != "int"):
-    #         exit(53)
-    #     else: # set new value to the variable
-    #         value = int(symb1.value) - int(symb2.value)
-    #         self.DataStack.push(Variable(None,"int", value))
-            
-    # def MULS(self):
-    #     symb2 = self.DataStack.pop()
-    #     symb1 = self.DataStack.pop()
-            
-    #     # check if symb1 and symb2 are both int types
-    #     if(symb1.type != "int" or symb2.type != "int"):
-    #         exit(53)
-    #     else: # set new value to the variable
-    #         value = int(symb1.value) * int(symb2.value)
-    #         self.DataStack.push(Variable(None,"int", value))
-            
-            
-    # def IDIVS(self):
-    #     symb2 = self.DataStack.pop()
-    #     symb1 = self.DataStack.pop()
-        
-    #     # check if symb1 and symb2 are both int types
-    #     if(symb1.type != "int" or symb2.type != "int"):
-    #         exit(53)
-    #     elif(int(symb2.value) == 0):
-    #         exit(57)
-    #     else:
-    #         #todo check if i should not put here try except
-    #         value = int(symb1.value) // int(symb2.value)
-    #         self.DataStack.push(Variable(None,"int", value))
-            
