@@ -332,31 +332,17 @@ class Instructions:
             exit(53)
         return newVarValue
     
-    def GetSymbVars(self, symbType1, symbType2):
+    def GetSymbVars(self, numOfSymb):
+        symbType = self.GetType(numOfSymb)
         
-        # var var
-        if symbType1 == "var" and symbType2 == "var":
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetVariable(self.GetVarName(2))
-
-        # symb var
-        elif symbType1 != "var" and symbType2 == "var":
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetVariable(self.GetVarName(2))
-
-        # var symb
-        elif symbType1 == "var" and symbType2 != "var":
-            symb1 = self.GetVariable(self.GetVarName(1))
-            symb2 = self.GetSymb(2)
-
-        # symb symb
-        elif symbType1 != "var" and symbType2 != "var":
-            symb1 = self.GetSymb(1)
-            symb2 = self.GetSymb(2)
+        if(symbType == "var"):
+            symb = self.GetVariable(self.GetVarName(numOfSymb))
+        elif symbType != "var":
+            symb = self.GetSymb(numOfSymb)
         else:
-            exit(53)
-            
-        return symb1, symb2
+            exit(53)    
+        
+        return symb
     
     # def CheckType(var, expectedType):
     #     if expectedType == "int" and isinstance(var, int):
@@ -393,8 +379,8 @@ class Instructions:
         if(self.Instructions[i].args[numOfArg].type == "string"):
             symbVal = self.ConvertStringLiterals(str(symbVal))
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
-        var = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
-        return var
+        Symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
+        return Symb
 #-------------------------------------- INSTRUCTIONS --------------------------------------
 #MOVE ⟨var⟩ ⟨symb⟩ 
 # Zkopíruje hodnotu ⟨symb⟩ do ⟨var⟩. Např. MOVE LF@par GF@var provede zkopírování hodnoty
@@ -552,10 +538,8 @@ class Instructions:
     # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ 
     # int check
     def ADD(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
@@ -566,10 +550,8 @@ class Instructions:
 
     
     def SUB(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
@@ -578,14 +560,10 @@ class Instructions:
             #todo check if i should not put here try except
             value = int(symb1.value) - int(symb2.value)
             self.SetVariable(self.GetVarName(0), "int", value)
-
-            
-                    
+              
     def MUL(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
@@ -596,10 +574,8 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "int", value)
             
     def IDIV(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
@@ -618,10 +594,8 @@ class Instructions:
 # operand je libovolného typu) lze porovnávat pouze instrukcí EQ, jinak chyba 53.
 
     def LT(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
@@ -648,10 +622,8 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "bool", value)
     
     def GT(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
@@ -678,10 +650,8 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "bool", value)
 
     def EQ(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
@@ -718,10 +688,8 @@ class Instructions:
 # ⟨var⟩.
 
     def AND(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type or symb1.type != "bool"):
@@ -735,10 +703,8 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "bool", value)
             
     def OR(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type or symb1.type != "bool"):
@@ -752,18 +718,7 @@ class Instructions:
             self.SetVariable(self.GetVarName(0), "bool", value)
 
     def NOT(self):
-        symbType1 = self.GetType(1)
-        
-        # var
-        if(symbType1 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            
-        # symb
-        elif(symbType1 != "var"):
-            symb1 = self.GetSymb(1)
-            
-        else:
-            exit(53)
+        symb1 = self.GetSymbVars(1)
             
         # check if symb1 is bool type
         if(symb1.type != "bool"):
@@ -781,20 +736,8 @@ class Instructions:
 # přiřazený do ⟨var⟩. Není-li ⟨symb⟩ validní ordinální hodnota znaku v Unicode (viz funkce chr
 # v Python 3), dojde k chybě 58.
     def INT2CHAR(self):
-        i = self.NumOfInstr
-        symbType1 = self.GetType(1)
-        
-        # var
-        if(symbType1 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            
-        # symb
-        elif(symbType1 != "var"):
-            symb1 = self.GetSymb(1)
-            
-        else:
-            exit(53)
-        
+        symb1 = self.GetSymbVars(1)
+                
         if(symb1.type != "int"):# todo is it neccecary?
             exit(53)
 
@@ -808,10 +751,8 @@ class Instructions:
 # Do ⟨var⟩ uloží ordinální hodnotu znaku (dle Unicode) v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩
 # (indexováno od nuly). Indexace mimo daný řetězec vede na chybu 58. Viz funkce ord v Python 3.
     def STRI2INT(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both int types
         if(symb1.type != "string" or symb2.type != "int"):
@@ -898,19 +839,7 @@ class Instructions:
         return result
 
     def WRITE(self):
-        i = self.NumOfInstr
-        symbType1 = self.GetType(0)
-        
-        # var
-        if(symbType1 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(0))
-            
-        # symb
-        elif(symbType1 != "var"):
-            symb1 = self.GetSymb(0)
-            
-        else:
-            exit(53)
+        symb1 = self.GetSymbVars(0)
         
         if(symb1.value == "true"):
             print("true", end="")
@@ -925,10 +854,8 @@ class Instructions:
 # Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
 # ⟨symb2⟩ (jiné typy nejsou povoleny).
     def CONCAT(self):
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type != symb2.type or symb1.type != "string"):
@@ -947,19 +874,7 @@ class Instructions:
 # STRLEN ⟨var⟩ ⟨symb⟩ Zjisti délku řetězce
 # Zjistí počet znaků (délku) řetězce v ⟨symb⟩ a tato délka je uložena jako celé číslo do ⟨var⟩.
     def STRLEN(self):
-        i = self.NumOfInstr
-        symbType1 = self.GetType(1)
-        
-        # var
-        if(symbType1 == "var"):
-            symb1 = self.GetVariable(self.GetVarName(1))
-            
-        # symb
-        elif(symbType1 != "var"):
-            symb1 = self.GetSymb(1)
-            
-        else:
-            exit(53)
+        symb1 = self.GetSymbVars(1)
         
         # check if symb1 is string
         if(symb1.type != "string"):
@@ -975,11 +890,8 @@ class Instructions:
 # Do ⟨var⟩ uloží řetězec z jednoho znaku v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩ (indexováno celým
 # číslem od nuly). Indexace mimo daný řetězec vede na chybu 58.
     def GETCHAR(self):
-        i = self.NumOfInstr
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        var = self.GetVarName(0)
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         # check if symb1 and symb2 are both string types
         if(symb1.type != "string" or symb2.type != "int"):
@@ -1002,11 +914,9 @@ class Instructions:
 # řetězec je opět uložen do ⟨var⟩. Při indexaci mimo řetězec ⟨var⟩ nebo v případě prázdného
 # řetězce v ⟨symb2⟩ dojde k chybě 58.    
     def SETCHAR(self):
-        i = self.NumOfInstr
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         var = self.GetVariable(self.GetVarName(0))
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
 
         # check if var, symb2 is string type
         if(var.type != symb2.type or var.type != "string" or symb1.type != "int"):
@@ -1041,10 +951,11 @@ class Instructions:
         # var
         if(symbType == "var"):
             symb = self.GetVariable(self.GetVarName(1),False)
-            
         # symb
-        else:
+        elif symbType != "var": 
             symb = self.GetSymb(1)
+        else:
+            exit(53)        
             
         if(symb.type != None):
             value = symb.type
@@ -1074,9 +985,8 @@ class Instructions:
 # zároveň se jejich hodnoty rovnají, tak provede skok na návěští ⟨label⟩.    
     def JUMPIFEQ(self):
         Label = self.GetValue(0)
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             
@@ -1111,9 +1021,8 @@ class Instructions:
                 
     def JUMPIFNEQ(self):
         Label = self.GetValue(0)
-        symbType1 = self.GetType(1)
-        symbType2 = self.GetType(2)
-        symb1 , symb2 = self.GetSymbVars(symbType1, symbType2)
+        symb1 = self.GetSymbVars(1)
+        symb2 = self.GetSymbVars(2)
         
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             
@@ -1149,6 +1058,7 @@ class Instructions:
 # DPRINT ⟨symb⟩ Výpis hodnoty na stderr
 # Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
     def DPRINT(self) :
+        symb = self.GetSymbVars(0)
         symbType1 = self.GetType(0)
         
         if(symbType1 == "var"):
@@ -1156,7 +1066,7 @@ class Instructions:
         elif(symbType1 != "var"):
             symb = self.GetSymb(0)
         else:
-            exit(52)
+            exit(53)
             
         print(symb.value, file=sys.stderr)
     
@@ -1164,14 +1074,7 @@ class Instructions:
 # ⟨symb⟩, kde ⟨symb⟩ je celé číslo v intervalu 0 až 49 (včetně). Nevalidní celočíselná hodnota
 # ⟨symb⟩ vede na chybu 57.
     def EXIT(self):
-        symbType1 = self.GetType(0)
-        
-        if(symbType1 == "var"):
-            symb = self.GetVariable(self.GetVarName(0))
-        elif(symbType1 != "var"):
-            symb = self.GetSymb(0)
-        else:
-            exit(52)
+        symb = self.GetSymbVars(0)
         
         if(symb.type != "int"):
             exit(53)
@@ -1198,3 +1101,55 @@ class Instructions:
         print("CallStack: ", self.CallStack, file=sys.stderr)
         print("DataStack: ", self.DataStack, file=sys.stderr)
         print("LabelList: ", self.LabelList, file=sys.stderr)
+        
+        
+#------------------------------------- STACK Instructions ---------------------------------------------------
+
+    # def ADDS(self):
+    #     symb2 = self.DataStack.pop()
+    #     symb1 = self.DataStack.pop()
+            
+    #     # check if symb1 and symb2 are both int types
+    #     if(symb1.type != "int" or symb2.type != "int"):
+    #         exit(53)
+    #     else: # set new value to the variable
+    #         value = int(symb1.value) + int(symb2.value)
+    #         self.DataStack.push(Variable(None,"int", value))
+            
+    # def SUBS(self):
+    #     symb2 = self.DataStack.pop()
+    #     symb1 = self.DataStack.pop()
+            
+    #     # check if symb1 and symb2 are both int types
+    #     if(symb1.type != "int" or symb2.type != "int"):
+    #         exit(53)
+    #     else: # set new value to the variable
+    #         value = int(symb1.value) - int(symb2.value)
+    #         self.DataStack.push(Variable(None,"int", value))
+            
+    # def MULS(self):
+    #     symb2 = self.DataStack.pop()
+    #     symb1 = self.DataStack.pop()
+            
+    #     # check if symb1 and symb2 are both int types
+    #     if(symb1.type != "int" or symb2.type != "int"):
+    #         exit(53)
+    #     else: # set new value to the variable
+    #         value = int(symb1.value) * int(symb2.value)
+    #         self.DataStack.push(Variable(None,"int", value))
+            
+            
+    # def IDIVS(self):
+    #     symb2 = self.DataStack.pop()
+    #     symb1 = self.DataStack.pop()
+        
+    #     # check if symb1 and symb2 are both int types
+    #     if(symb1.type != "int" or symb2.type != "int"):
+    #         exit(53)
+    #     elif(int(symb2.value) == 0):
+    #         exit(57)
+    #     else:
+    #         #todo check if i should not put here try except
+    #         value = int(symb1.value) // int(symb2.value)
+    #         self.DataStack.push(Variable(None,"int", value))
+            
