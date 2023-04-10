@@ -54,6 +54,8 @@ I should look at changing type of variable
 - TODO FIX BUG KDYZ PRISTUPUJU DO FRAME LOCAL MEL BYCH PRI EDITU VARIABLE SI VYTAHNOUT ZMENIT A VRATIT ZPET DO STACKU 
 - test read pokud bude input file nebo stdin
 - otestovat BREAK A DPRINT
+- float extension 
+    nemusi byt oba type float pise se to na strane 8 v 5.1 z pdf na ifj 
 
 TEST FAILURES:
     both/functionCalls
@@ -62,8 +64,6 @@ TEST FAILURES:
                         /functions4     
                         /functions5
                         /functions9
-    both/eq  
-                        /eq2
     both/read       
                         /read_badval    - i think the Expected output is bad 
 

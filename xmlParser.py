@@ -22,9 +22,11 @@ class InstructionParser:
             root = tree.getroot()
         except:
             exit(31)
-            
+        
+
         self.instructions = []
         for instr_element in root:
+            arg1=arg2=arg3 = 0
             if instr_element.tag != 'instruction' or root.tag != 'program' :
                 exit(32)
             
@@ -40,11 +42,32 @@ class InstructionParser:
                 if arg_element.tag != 'arg1' and arg_element.tag != 'arg2' and arg_element.tag != 'arg3' :
                     exit(32)
                     
+                if arg_element.tag == 'arg1':
+                    arg1 += 1 
+                elif arg_element.tag == 'arg2':
+                    arg2 += 1 
+                elif arg_element.tag == 'arg3':
+                    arg3 += 1 
+                else:
+                    exit(32)
+                    
                 arg_type = arg_element.get('type')
                 arg_value = arg_element.text
                 arg_number = int(arg_element.tag[3:])
                 instr_args.append((arg_number, Argument(arg_type, arg_value)))
 
+            # check arg numbers
+            if(arg3 > 1 or arg2 > 1 or arg1 > 1):
+                exit(32)
+            if(arg3 == 1 and arg2 == 0 and arg1 == 0):
+                exit(32)
+            elif(arg3 == 1 and arg2 == 1 and arg1 == 0):
+                exit(32)
+            elif(arg3 == 1 and arg2 == 0 and arg1 == 1):
+                exit(32)
+            elif(arg3 == 0 and arg2 == 1 and arg1 == 0):
+                exit(32)
+                
             # sort the arguments by their number
             instr_args.sort(key=lambda x: x[0])
             instr_args = [arg[1] for arg in instr_args]

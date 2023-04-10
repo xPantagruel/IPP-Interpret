@@ -365,6 +365,7 @@ class Instructions:
                 return newVarValue
             try:
                 newVarValue = str(newVarValue)
+                # newVarValue = self.ConvertStringLiterals(newVarValue)
             except ValueError:
                 exit(53)
         elif(newVarType == "nil"):
@@ -437,8 +438,12 @@ class Instructions:
             # Check if variable is in frame
             self.VarExists(self.GetValue(0))
 
+            if(self.GetType(1) == "string"):
+                value = self.ConvertStringLiterals(str(self.GetValue(1)))
+            else:
+                value = self.GetValue(1)
             # copy to var symb value and type
-            self.SetVariable(self.GetValue(0), self.GetType(1), self.GetValue(1))
+            self.SetVariable(self.GetValue(0), self.GetType(1), value)
 
         elif(self.GetType(0) == "var" and self.GetType(1) == "var"):
             # Check if variable is in frame
@@ -646,7 +651,7 @@ class Instructions:
             exit(57)
         else:
             #todo check if i should not put here try except
-            value = int(symb1.value) // int(symb2.value)
+            value = int(symb1.value) // int(symb2.value)# shouldnt be there only / ?
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
 #     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
 # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
@@ -722,6 +727,7 @@ class Instructions:
         if(StackOption):
             symb1, symb2 = symb2, symb1
             
+        # print(symb1.value, symb2.value)
         # check if symb1 and symb2 are both int types
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             if(symb1.type == "int" and symb2.type == "int"):
@@ -1017,10 +1023,11 @@ class Instructions:
         if(len(var.value) < int(symb1.value)):
             exit(58)
         
-        # case if symb2 is in format \ddd
-        symb2Val = self.ConvertStringLiterals(symb2.value)
+        #todo not tested        
+        # # case if symb2 is in format \ddd
+        # symb2Val = self.ConvertStringLiterals(symb2.value)
         
-        value = var.value[:int(symb1.value)] + symb2Val[0] + var.value[int(symb1.value)+1:]
+        value = var.value[:int(symb1.value)] + symb2.value[0] + var.value[int(symb1.value)+1:]
 
         self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
 # TYPE ⟨var⟩ ⟨symb⟩ Zjisti typ daného symbolu
