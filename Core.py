@@ -1,3 +1,10 @@
+######
+# File name: core.py
+# Description: Projekt 2 do predmetu IPP 2023, FIT VUT
+# Athor: Matěj Macek (xmacek27)
+# Date: 10.04.2023
+######
+
 import sys
 
 class Stack:
@@ -21,7 +28,6 @@ class Stack:
     def Clears(self):
         self.items = []
 
-
 class Variable:
     def __init__(self, name, type=None, value=None, isInicialized=False):
         self.name = name
@@ -35,13 +41,13 @@ class Label:
         self.value = value
         self.row = row
 #------------------------------- Class Interpret --------------------------------
-class Interpret():
+class Interpret():# todo jestli tohle nezrusit a nezavolat jen instanci Insstructions v mainu
     def __init__(self, Instructions, InputType=sys.stdin):
         self.Instructions = Instructions
         self.LabelList = []
         self.InputT = InputType
     
-    def InitializateLists(self): 
+    def InitializateLabelList(self): 
         # initialize label list and check if label is defined
         for i in range(len(self.Instructions)):
             if self.Instructions[i].opcode == "LABEL":
@@ -52,7 +58,7 @@ class Interpret():
                 self.LabelList.append(Label(self.Instructions[i].args[0].value, self.Instructions[i].args[0].value, i-1))
         
     def Interpretation(self):
-        self.InitializateLists()
+        self.InitializateLabelList()
         # create instance of class Instructions
         Instr = Instructions(self.Instructions, self.LabelList, self.InputT)
         Instr.Execution()
@@ -232,23 +238,16 @@ class Instructions:
             elif Instr == "INT2FLOATS":
                 self.INT2FLOAT(StackOption=True)
             else:
-                exit(32)#todo check if exit code is correct            
+                exit(32)         
 
             self.NumOfInstr += 1
-            
-    # def PositionOfVar(self, var):
-    #     for i in range(len(self.GlobalFrameList)):
-    #         if self.GlobalFrameList[i].name == var:
-    #             return i
-    #     exit(54)
-    
+#----------------------------------------------------------------------------------------------------------
     def NumOfArgCheck(self, numOfArgs):
         if(len(self.Instructions[self.NumOfInstr].args) != numOfArgs):
             exit(32) 
             
     def GetVariable(self, varName, IsInicialized=True ):
-        # print("---GetVariable-" + varName)
-        if(varName[0:3] == "GF@"):
+        if(varName[0:3] == "GF@"):# check if variable is global
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
                     if(IsInicialized):
@@ -256,15 +255,11 @@ class Instructions:
                             exit(56)
                     return self.GlobalFrameList[i]
                 
-        elif(varName[0:3] == "LF@"):
-            # print(self.FrameType)
+        elif(varName[0:3] == "LF@"):# check if variable is local
             if(self.LocalFramesStack.IsEmpty()):
                 exit(55)
-            
-            # Get the top list
-            # print(self.LocalFramesStack.IsEmpty())
+
             TopList = self.LocalFramesStack.peek()
-            # print(TopList[0].name)
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
                     if(IsInicialized):
@@ -272,7 +267,7 @@ class Instructions:
                             exit(56)
                     return TopList[i]
                 
-        elif(varName[0:3] == "TF@"):
+        elif(varName[0:3] == "TF@"):# check if variable is temporary
             if(self.FrameType != "TF"):
                 exit(55)
                 
@@ -285,20 +280,17 @@ class Instructions:
                 
         exit(54)
     
-    # todo i have to add new type of variable to the frame
     def SetVariable(self,varName, newVarType, newVarValue ):
-        if(varName[0:3] == "GF@"):
+        if(varName[0:3] == "GF@"):# check if variable is global
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == varName):
                     self.GlobalFrameList[i].type = newVarType
                     self.GlobalFrameList[i].value = self.ChangeVarType(newVarType, newVarValue)
                     if(self.GlobalFrameList[i].isInicialized == False): # nastaveni inicializace
                         self.GlobalFrameList[i].isInicialized = True
-                    return
-            exit(54)
-            
-            #todo fix this same as getvariable
-        elif(varName[0:3] == "LF@"):
+                    return  
+                          
+        elif(varName[0:3] == "LF@"):# check if variable is local
             if(self.LocalFramesStack == None or self.LocalFramesStack.IsEmpty()):
                 exit(55)
             TopList = self.LocalFramesStack.peek()
@@ -306,15 +298,14 @@ class Instructions:
             for i in range(len(TopList)):     
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
-                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)#TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST
+                    TopList[i].value = self.ChangeVarType(newVarType, newVarValue)
                     if(TopList[i].isInicialized == False):
                         TopList[i].isInicialized = True
                     self.LocalFramesStack.pop()
                     self.LocalFramesStack.push(TopList)
                     return
-
-            exit(54)    
-        elif(varName[0:3] == "TF@"):
+                
+        elif(varName[0:3] == "TF@"):# check if variable is temporary
             if(self.FrameType != "TF"):
                 exit(55)
                 
@@ -325,11 +316,12 @@ class Instructions:
                     if(self.TemporaryFrames[i].isInicialized == False):
                         self.TemporaryFrames[i].isInicialized = True
                     return
-            exit(54)
         else:
             exit(54)
             
-    def VarExists(self, VarName):
+        exit(54)
+            
+    def VarExistsCheck(self, VarName):
         if(VarName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
                 if(self.GlobalFrameList[i].name == VarName):
@@ -339,7 +331,6 @@ class Instructions:
                 exit(55)
                 
             TopList = self.LocalFramesStack.peek()
-            # print(TopList[0].name)
             for i in range(len(TopList)):     
                 if(TopList[i].name == VarName):
                     return
@@ -347,16 +338,14 @@ class Instructions:
         elif(VarName[0:3] == "TF@"):
             if(self.FrameType != "TF"):
                 exit(55)
-                
             for i in range(len(self.TemporaryFrames)):
                 if(self.TemporaryFrames[i].name == VarName):
                     return
         else:
             exit(54)
-        
+            
         exit(54)
         
-    
     def ChangeVarType(self, newVarType, newVarValue):
         if(newVarType == "bool"):
             if(newVarValue == "true"):
@@ -368,28 +357,27 @@ class Instructions:
         elif(newVarType == "int"):
             try:
                 newVarValue = int(newVarValue)
-            except ValueError:
+            except :
                 exit(53)
         elif(newVarType == "string"):
             if(newVarValue == None):
                 return newVarValue
             try:
                 newVarValue = str(newVarValue)
-                # newVarValue = self.ConvertStringLiterals(newVarValue)
-            except ValueError:
+            except :
                 exit(53)
         elif(newVarType == "nil"):
             return newVarValue
         elif(newVarType == "float"):
             try:
                 newVarValue = float.fromhex(str(newVarValue))
-            except ValueError:
+            except :
                 exit(53)
         else:
-            exit(53)# todo nemela by tady byt chyba 32?
+            exit(53)
         return newVarValue
     
-    def GetSymbVars(self, numOfSymb, StacOption = False):
+    def GetSymbOrVar(self, numOfSymb, StacOption = False):
         if(StacOption):
             symb = self.DataStack.pop()
         else:            
@@ -401,20 +389,7 @@ class Instructions:
                 symb = self.GetSymb(numOfSymb)
             else:
                 exit(53)    
-            
         return symb
-    
-    # def CheckType(var, expectedType):
-    #     if expectedType == "int" and isinstance(var, int):
-    #         return True
-    #     elif expectedType == "float" and isinstance(var, float):
-    #         return True
-    #     elif expectedType == "bool" and isinstance(var, bool):
-    #         return True
-    #     elif expectedType == "str" and isinstance(var, str):
-    #         return True
-    #     else:
-    #         exit(53)
 
     def GetType(self, numOfArg):
         i = self.NumOfInstr
@@ -437,26 +412,29 @@ class Instructions:
         if(symbVal == None):# empty symb
             return Variable("Symb", self.Instructions[i].args[numOfArg].type)
         
-        # string
         if(self.Instructions[i].args[numOfArg].type == "string"):
             symbVal = self.ConvertStringLiterals(str(symbVal))
+            
         if(self.Instructions[i].args[numOfArg].type == "float"):
             try:
                 symbVal = float.fromhex(str(symbVal))
-            except ValueError:
+            except :
                 exit(53)
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
         Symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
         return Symb
+    
+    def SetHandler(self, VarName = None, Type = None, Value = None, StackOption = False):
+        if(StackOption == True):
+            self.DataStack.push(Variable(VarName, Type, Value))
+        else:
+            self.SetVariable(VarName, Type, Value)
 #-------------------------------------- INSTRUCTIONS --------------------------------------
-#MOVE ⟨var⟩ ⟨symb⟩ 
-# Zkopíruje hodnotu ⟨symb⟩ do ⟨var⟩. Např. MOVE LF@par GF@var provede zkopírování hodnoty
-# proměnné var v globálním rámci do proměnné par v lokálním rámci.
     def MOVE(self):
         # move var symb
         if(self.GetType(0) == "var" and self.GetType(1) != "var"):
             # Check if variable is in frame
-            self.VarExists(self.GetValue(0))
+            self.VarExistsCheck(self.GetValue(0))
 
             if(self.GetType(1) == "string"):
                 value = self.ConvertStringLiterals(str(self.GetValue(1)))
@@ -467,8 +445,8 @@ class Instructions:
 
         elif(self.GetType(0) == "var" and self.GetType(1) == "var"):
             # Check if variable is in frame
-            self.VarExists(self.GetValue(0))
-            self.VarExists(self.GetValue(1))
+            self.VarExistsCheck(self.GetValue(0))
+            self.VarExistsCheck(self.GetValue(1))
 
             # copy to var value and type
             var = self.GetVariable(self.GetValue(1))
@@ -479,9 +457,6 @@ class Instructions:
         self.TemporaryFrames = []
         self.FrameType = "TF"
 
-# todo TF bude po provedení instrukce nedefinován a je třeba jej před dalším
-# todo použitím vytvořit pomocí CREATEFRAME. Pokus o přístup k nedefinovanému rámci vede na
-# todo chybu 55.
     def PUSHFRAME(self):
         if(self.FrameType != "TF"):
             exit(55)
@@ -491,12 +466,6 @@ class Instructions:
 
         self.LocalFramesStack.push(self.TemporaryFrames)
         self.FrameType = "LF"
-        
-        # todo priklad jak vstoupit do LF
-        # # Get the top list
-        # top_list = self.LocalFramesStack.peek()
-        # print(top_list[0].name)
-
             
     def POPFRAME(self):
         if(self.LocalFramesStack.IsEmpty() and self.FrameType != "TF"):
@@ -505,20 +474,16 @@ class Instructions:
             self.TemporaryFrames = self.LocalFramesStack.pop()
             self.FrameType = "TF"
             
-            # replace LF@ to TF@
+        # replace LF@ to TF@
         if(self.TemporaryFrames != None):
             for i in range(len(self.TemporaryFrames)):
                 self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("LF@", "TF@")
         else:
-            exit(55)# todo check this if its neccesary
+            exit(55)
             
     def DEFVAR(self):
-        # I have 3 cases - var@GF, var@LF, var@TF
-        # first thing I have to check which frame is active and check symbols before '@' then check if it suits the frame the frame type, then I have to create variable in the frame
-        # second thing of I have to check if the variable is already defined and if yes then I have to exit with error code 52
-        # VarName = self.Instructions[self.NumOfInstr].args[0].value
         VarName = self.GetVarName(0)
-        #check var type 
+        
         # case 1 - var@GF
         if(VarName[0:3] == "GF@"):
             # check if var is already defined
@@ -530,12 +495,10 @@ class Instructions:
                 
         # case 2 - var@LF
         elif(VarName[0:3] == "LF@"):
-            # todo check if i have to check if LF is defined and if not then exit with error code 55
             if(self.LocalFramesStack == None or self.LocalFramesStack.IsEmpty()):
                 exit(55)
                     
             TopList = self.LocalFramesStack.peek()
-            # print(TopList[0].name)
             for i in range(len(TopList)):     
                 if(TopList[i].name == VarName):
                     exit(52)
@@ -548,7 +511,6 @@ class Instructions:
 
         # case 3 - var@TF
         elif(VarName[0:3] == "TF@" and self.FrameType == "TF"):
-            # todo check if i have to check if LF is defined and if not then exit with error code 55
             if(self.TemporaryFrames == None):
                 exit(55)
             # check if var is already defined
@@ -559,11 +521,7 @@ class Instructions:
                 self.TemporaryFrames.append(Variable(VarName))
         else:
             exit(55)
-    
-    # update NumberOfInstruction to the row of the labelv
-#     CALL ⟨label⟩ Skok na návěští s podporou návratu
-# Uloží inkrementovanou aktuální pozici z interního čítače instrukcí do zásobníku volání a provede
-# skok na zadané návěští (případnou přípravu rámce musí zajistit jiné instrukce).
+
     def CALL(self):
         # save the current position of the instruction into stack
         self.CallStack.push(self.NumOfInstr)
@@ -575,19 +533,12 @@ class Instructions:
                 return
         exit(52)
         
-            
-# RETURN Návrat na pozici uloženou instrukcí CALL
-# Vyjme pozici ze zásobníku volání a skočí na tuto pozici nastavením interního čítače instrukcí
-# (úklid lokálních rámců musí zajistit jiné instrukce). Provedení instrukce při prázdném zásobníku
-# volání vede na chybu 56.
     def RETURN(self):
         if(self.CallStack.IsEmpty()):
             exit(56)
         else:
             self.NumOfInstr = self.CallStack.pop()    
               
-#Uloží hodnotu ⟨symb⟩ na datový zásobník.
-# todo check if i should push it like this => only the value to the Datastack
     def PUSHS(self):
         instr = self.Instructions[self.NumOfInstr]
         # check if its variable(call function to get variable) or symbol
@@ -605,18 +556,12 @@ class Instructions:
         else:
             VarPop = self.DataStack.pop()
             self.SetVariable(instr.args[0].value, VarPop.type, VarPop.value)
-    
-    def SetHandler(self, VarName = None, Type = None, Value = None, StackOption = False):
-        if(StackOption == True):
-            self.DataStack.push(Variable(VarName, Type, Value))
-        else:
-            self.SetVariable(VarName, Type, Value)
             
     # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ 
     # int check
     def ADD(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -633,8 +578,8 @@ class Instructions:
 
     
     def SUB(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -652,8 +597,8 @@ class Instructions:
             
               
     def MUL(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -670,8 +615,8 @@ class Instructions:
             exit(53)
             
     def IDIV(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -682,12 +627,12 @@ class Instructions:
             exit(57)
         else:
             #todo check if i should not put here try except
-            value = int(symb1.value) // int(symb2.value)# shouldnt be there only / ?
+            value = int(symb1.value) // int(symb2.value)# todo shouldnt be there only / ?
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
             
     def DIV(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -700,16 +645,10 @@ class Instructions:
             #todo check if i should not put here try except
             value = float(symb1.value) / float(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "float", value, StackOption)
-#     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
-# Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
-# string) a do ⟨var⟩ zapíše výsledek typu bool (false při neplatnosti nebo true v případě platnosti
-# odpovídající relace). Řetězce jsou porovnávány lexikograficky a false je menší než true. Pro
-# výpočet neostrých nerovností lze použít AND/OR/NOT. S operandem typu nil (další zdrojový
-# operand je libovolného typu) lze porovnávat pouze instrukcí EQ, jinak chyba 53.
 
     def LT(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -743,11 +682,12 @@ class Instructions:
             self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
     
     def GT(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both int types
         if(symb1.type != symb2.type):
             exit(53)
@@ -778,13 +718,12 @@ class Instructions:
             self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
 
     def EQ(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
             
-        # print(symb1.value, symb2.value)
         # check if symb1 and symb2 are both int types
         if(symb1.type == symb2.type or symb1.type == "nil" or symb2.type == "nil"):
             if(symb1.type == "int" and symb2.type == "int"):
@@ -819,14 +758,9 @@ class Instructions:
             
         self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
             
-#     AND/OR/NOT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Základní booleovské operátory
-# Aplikuje konjunkci (logické A)/disjunkci (logické NEBO) na operandy typu bool ⟨symb1⟩ a
-# ⟨symb2⟩ nebo negaci na ⟨symb1⟩ (NOT má pouze 2 operandy) a výsledek typu bool zapíše do
-# ⟨var⟩.
-
     def AND(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -842,8 +776,8 @@ class Instructions:
             self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
             
     def OR(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -859,7 +793,7 @@ class Instructions:
             self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
 
     def NOT(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
             
         # check if symb1 is bool type
         if(symb1.type != "bool"):
@@ -871,29 +805,24 @@ class Instructions:
                 value = "true"
                 
             self.SetHandler(self.GetVarName(0, StackOption), "bool", value, StackOption)
-    
-#     INT2CHAR ⟨var⟩ ⟨symb⟩ Převod celého čísla na znak
-# Číselná hodnota ⟨symb⟩ je dle Unicode převedena na znak, který tvoří jednoznakový řetězec
-# přiřazený do ⟨var⟩. Není-li ⟨symb⟩ validní ordinální hodnota znaku v Unicode (viz funkce chr
-# v Python 3), dojde k chybě 58.
+
     def INT2CHAR(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
                 
-        if(symb1.type != "int"):# todo is it neccecary?
+        if(symb1.type != "int"):
             exit(53)
 
-        try:
-            value = chr(int(symb1.value))
-            self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
-        except ValueError:
-            exit(58)  
+        # string outrange
+        if(int(symb1.value) > 1114111 or int(symb1.value) < 0):
+            exit(58)
+
+        value = chr(int(symb1.value))
+        self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
+
     
-#     STRI2INT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Ordinální hodnota znaku
-# Do ⟨var⟩ uloží ordinální hodnotu znaku (dle Unicode) v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩
-# (indexováno od nuly). Indexace mimo daný řetězec vede na chybu 58. Viz funkce ord v Python 3.
     def STRI2INT(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -905,90 +834,75 @@ class Instructions:
         if(int(symb2.value) >= len(symb1.value) or int(symb2.value) < 0):
             exit(58)        
 
-        try:
-            value = ord(symb1.value[int(symb2.value)])
-            self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
-        except ValueError:
-            exit(58)
+        value = ord(symb1.value[int(symb2.value)])
+        self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
     
-#     READ ⟨var⟩ ⟨type⟩ Načtení hodnoty ze standardního vstupu
-# Načte jednu hodnotu dle zadaného typu ⟨type⟩ ∈ {int, string, bool} a uloží tuto hodnotu do
-# proměnné ⟨var⟩. Načtení proveďte vestavěnou funkcí input() (či analogickou) jazyka Python 3,
-# pak proveďte konverzi na specifikovaný typ ⟨type⟩. Při převodu vstupu na typ bool nezáleží na
-# velikosti písmen a řetězec ”
-# true“ se převádí na bool@true, vše ostatní na bool@false. V případě
-# chybného nebo chybějícího vstupu bude do proměnné ⟨var⟩ uložena hodnota nil@nil
     def READ(self): # todo i have to decide if the input is from file or console
         type = self.GetValue(1)
         if(type == "int"):
             try:
-                value = self.Input.readline().rstrip()
+                value = input()
                 self.SetVariable(self.GetVarName(0), "int", int(value))
-            except ValueError:
+            except Exception:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "string"):
             try:
-                value = self.Input.readline().rstrip()
+                value = input()
                 self.SetVariable(self.GetVarName(0), "string", str(value))
-            except ValueError:
+            except Exception:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "bool"):# todo figure out if the input is not true shoudl i put in false or nil? 
             try:
-                value = self.Input.readline().rstrip()
+                value = input()
                 if(value.lower() == "true"):
                     value = "true"
                 else:
                     value = "false"
                 self.SetVariable(self.GetVarName(0), "bool", value)
-            except ValueError:
+            except Exception:
                 self.SetVariable(self.GetVarName(0), "bool", "false")
         elif(type == "float"):
             try:
-                value = self.Input.readline().rstrip()
+                value = input()
                 self.SetVariable(self.GetVarName(0), "float", value)
-            except ValueError:
+            except Exception:
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
         else:
             exit(53)
         
-#     WRITE ⟨symb⟩ Výpis hodnoty na standardní výstup
-# Vypíše hodnotu ⟨symb⟩ na standardní výstup. Až na typ bool a hodnotu nil@nil je formát
-# výpisu kompatibilní s příkazem print jazyka Python 3 s doplňujícím parametrem end='' (zamezí dodatečnému odřádkování). Pravdivostní hodnota se vypíše jako true a nepravda jako
-# false. Hodnota nil@nil se vypíše jako prázdný řetězec.
     def ConvertStringLiterals(self,string):
-        # inicializace proměnných
+        # var inicialization
         result = ""
         EscapeMode = False
         EscapeCode = ""
         
-        # projdeme každý znak řetězce
+        # go through every char in string
         for char in string:
-            # escape sekvence
+            # escape sequence
             if EscapeMode:
                 EscapeCode += char
                 if len(EscapeCode) == 3:
                     result += chr(int(EscapeCode))
                     EscapeMode = False
                     EscapeCode = ""
-            # běžný tisknutelný znak
+            # printable char
             elif char not in [' ', '#', '\\']:
                 result += char
-            # začátek escape sekvence
+            # start of escape sequence
             elif char == '\\':
                 EscapeMode = True
-            # zakázána mřížka a zpětné lomítko
+            # forbidden # and \
             elif char in ['#', '\\']:
                 pass
-            # zakódování bílého znaku
             else:
                 result += chr(ord(char) + 128)
         
         return result
 
     def WRITE(self):
-        symb1 = self.GetSymbVars(0)
+        symb1 = self.GetSymbOrVar(0)
         
         if(symb1.value == "true"):
             print("true", end="")
@@ -1001,15 +915,13 @@ class Instructions:
         else:
             print(symb1.value, end="")
     
-#     CONCAT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Konkatenace dvou řetězců
-# Do proměnné ⟨var⟩ uloží řetězec vzniklý konkatenací dvou řetězcových operandů ⟨symb1⟩ a
-# ⟨symb2⟩ (jiné typy nejsou povoleny).
     def CONCAT(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both string types
         if(symb1.type != symb2.type or symb1.type != "string"):
             exit(53)
@@ -1024,10 +936,9 @@ class Instructions:
             value = str(symb1.value) + str(symb2.value)
             
         self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
-# STRLEN ⟨var⟩ ⟨symb⟩ Zjisti délku řetězce
-# Zjistí počet znaků (délku) řetězce v ⟨symb⟩ a tato délka je uložena jako celé číslo do ⟨var⟩.
+
     def STRLEN(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
         
         # check if symb1 is string
         if(symb1.type != "string"):
@@ -1039,12 +950,10 @@ class Instructions:
             value = len(symb1.value)  
         
         self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
-#     GETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Vrať znak řetězce
-# Do ⟨var⟩ uloží řetězec z jednoho znaku v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩ (indexováno celým
-# číslem od nuly). Indexace mimo daný řetězec vede na chybu 58.
+
     def GETCHAR(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -1063,20 +972,15 @@ class Instructions:
 
         self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
 
-# SETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Změň znak řetězce
-# Zmodifikuje znak řetězce uloženého v proměnné ⟨var⟩ na pozici ⟨symb1⟩ (indexováno celočíselně
-# od nuly) na znak v řetězci ⟨symb2⟩ (první znak, pokud obsahuje ⟨symb2⟩ více znaků). Výsledný
-# řetězec je opět uložen do ⟨var⟩. Při indexaci mimo řetězec ⟨var⟩ nebo v případě prázdného
-# řetězce v ⟨symb2⟩ dojde k chybě 58.    
     def SETCHAR(self, StackOption = False):
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
         if(StackOption == False):
             var = self.GetVariable(self.GetVarName(0))
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
-        # check if var, symb2 is string type
+            
         if(var.type != symb2.type or var.type != "string" or symb1.type != "int"):
             exit(53)
            
@@ -1093,16 +997,10 @@ class Instructions:
         if(len(var.value) < int(symb1.value)):
             exit(58)
         
-        #todo not tested        
-        # # case if symb2 is in format \ddd
-        # symb2Val = self.ConvertStringLiterals(symb2.value)
-        
         value = var.value[:int(symb1.value)] + symb2.value[0] + var.value[int(symb1.value)+1:]
 
         self.SetHandler(self.GetVarName(0, StackOption), "string", value, StackOption)
-# TYPE ⟨var⟩ ⟨symb⟩ Zjisti typ daného symbolu
-# Dynamicky zjistí typ symbolu ⟨symb⟩ a do ⟨var⟩ zapíše řetězec značící tento typ (int, bool,
-# string nebo nil). Je-li ⟨symb⟩ neinicializovaná proměnná, označí její typ prázdným řetězcem
+
     def TYPE(self):
         symbType = self.GetType(1)
         
@@ -1121,14 +1019,11 @@ class Instructions:
             value = ""
         
         self.SetHandler(self.GetVarName(0), "string", value)
-# LABEL ⟨label⟩ Definice návěští
-# Speciální instrukce označující pomocí návěští ⟨label⟩ důležitou pozici v kódu jako potenciální cíl
-# libovolné skokové instrukce. Pokus o vytvoření dvou stejně pojmenovaných návěští na různých
-# místech programu je chybou 52.
+        
+    # label is already handled in the beginning of the program
     def LABEL(self):
         pass
-# JUMP ⟨label⟩ Nepodmíněný skok na návěští
-# Provede nepodmíněný skok na zadané návěští ⟨label⟩.
+
     def JUMP(self):
         Label = self.GetValue(0)
         
@@ -1138,13 +1033,11 @@ class Instructions:
                 return
             
         exit(52)
-# JUMPIFEQ ⟨label⟩ ⟨symb1⟩ ⟨symb2⟩ Podmíněný skok na návěští při rovnosti
-# Pokud jsou ⟨symb1⟩ a ⟨symb2⟩ stejného typu nebo je některý operand nil (jinak chyba 53) a
-# zároveň se jejich hodnoty rovnají, tak provede skok na návěští ⟨label⟩.    
+  
     def JUMPIFEQ(self, StackOption = False):
         Label = self.GetValue(0)
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -1182,8 +1075,8 @@ class Instructions:
                 
     def JUMPIFNEQ(self, StackOption = False):
         Label = self.GetValue(0)
-        symb1 = self.GetSymbVars(1, StackOption)
-        symb2 = self.GetSymbVars(2, StackOption)
+        symb1 = self.GetSymbOrVar(1, StackOption)
+        symb2 = self.GetSymbOrVar(2, StackOption)
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
@@ -1219,11 +1112,8 @@ class Instructions:
         else:
             exit(53)
     
-# Ukončí vykonávání programu, případně vypíše statistiky a ukončí interpret s návratovým kódem
-# ⟨symb⟩, kde ⟨symb⟩ je celé číslo v intervalu 0 až 49 (včetně). Nevalidní celočíselná hodnota
-# ⟨symb⟩ vede na chybu 57.
     def EXIT(self):
-        symb = self.GetSymbVars(0)
+        symb = self.GetSymbOrVar(0)
         
         if(symb.type != "int"):
             exit(53)
@@ -1237,11 +1127,8 @@ class Instructions:
             exit(code)
         else:
             exit(57)        
-# BREAK Výpis stavu interpretu na stderr
-# Předpokládá se, že na standardní chybový výstup (stderr) vypíše stav interpretu (např. pozice
-# v kódu, obsah rámců, počet vykonaných instrukcí) v danou chvíli (tj. během vykonávání této
-# instrukce).
-    def BREAK(self):
+
+    def BREAK(self):# todo test it
         print("NumOfInstr: ", self.NumOfInstr, file=sys.stderr)
         print("GlobalFrameList: ", self.GlobalFrameList, file=sys.stderr)
         print("TempFrameList: ", self.TemporaryFrames, file=sys.stderr)
@@ -1249,21 +1136,16 @@ class Instructions:
         print("DataStack: ", self.DataStack, file=sys.stderr)
         print("LabelList: ", self.LabelList, file=sys.stderr)
 
-# DPRINT ⟨symb⟩ Výpis hodnoty na stderr
-# Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
     def DPRINT(self) :
-        symb = self.GetSymbVars(0)
+        symb = self.GetSymbOrVar(0)
             
         print(symb.value, file=sys.stderr)
               
     def CLEARS(self):
         self.DataStack.Clears()
     
-# FLOAT2INT ⟨var⟩ ⟨symb⟩ Převod desetinné hodnoty na celočíselnou (oseknutí)
-# Převede desetinnou hodnotu ⟨symb⟩ na celočíselnou oseknutím desetinné části a uloží
-# ji do ⟨var⟩.
     def FLOAT2INT(self, StackOption = False):
-        symb = self.GetSymbVars(1, StackOption)
+        symb = self.GetSymbOrVar(1, StackOption)
         
         if(symb.type != "float"):
             exit(53)
@@ -1275,11 +1157,8 @@ class Instructions:
         
         self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
 
-        
-# INT2FLOAT ⟨var⟩ ⟨symb⟩ Převod celočíselné hodnoty na desetinnou
-# Převede celočíselnou hodnotu ⟨symb⟩ na desetinné číslo a uloží je do ⟨var⟩.
     def INT2FLOAT(self, StackOption = False):
-        symb = self.GetSymbVars(1,StackOption)
+        symb = self.GetSymbOrVar(1,StackOption)
         
         if(symb.type != "int"):
             exit(53)
@@ -1290,4 +1169,3 @@ class Instructions:
             exit(57)
         
         self.SetHandler(self.GetVarName(0, StackOption), "float", value, StackOption)
-        

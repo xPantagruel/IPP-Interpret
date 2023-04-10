@@ -1,6 +1,12 @@
+######
+# File name: argParser.py
+# Description: Projekt 2 do predmetu IPP 2023, FIT VUT
+# Athor: Matěj Macek (xmacek27)
+# Date: 10.04.2023
+######
+
 import argparse
 import sys
-import os
 
 class ArgParse:
     def __init__(self):
@@ -25,7 +31,7 @@ class ArgParse:
             
         if self.args.input is not None:
             try:
-                self.input = open(self.args.input, 'r')
+                sys.stdin = open(self.args.input, 'r')
             except:
                 exit(11)
         else:
@@ -40,4 +46,4 @@ class ArgParse:
 
     def CloseF(self):
         self.source.close()
-        self.input.close()
+        # self.input.close()

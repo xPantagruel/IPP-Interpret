@@ -1,3 +1,10 @@
+######
+# File name: xmlParser.py
+# Description: Projekt 2 do predmetu IPP 2023, FIT VUT
+# Athor: Matěj Macek (xmacek27)
+# Date: 10.04.2023
+######
+
 import xml.etree.ElementTree as ET
 
 class Instr:
@@ -25,6 +32,9 @@ class InstructionParser:
         
 
         self.instructions = []
+        if(root.attrib['language'].upper() != 'IPPcode23'.upper()):
+            exit(32)
+            
         for instr_element in root:
             arg1=arg2=arg3 = 0
             if instr_element.tag != 'instruction' or root.tag != 'program' :
