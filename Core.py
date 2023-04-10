@@ -125,6 +125,8 @@ class Instructions:
                 self.IDIV()
             elif Instr == "IDIVS":
                 self.IDIV(StackOption=True)
+            elif Instr == "DIV":
+                self.DIV()
             elif Instr == "LT":
                 self.NumOfArgCheck(3)
                 self.LT()
@@ -221,6 +223,14 @@ class Instructions:
                 self.BREAK()
             elif Instr == "CLEARS":
                 self.CLEARS()
+            elif Instr == "FLOAT2INT":
+                self.FLOAT2INT()
+            elif Instr == "FLOAT2INTS":
+                self.FLOAT2INT(StackOption=True)
+            elif Instr == "INT2FLOAT":
+                self.INT2FLOAT()
+            elif Instr == "INT2FLOATS":
+                self.INT2FLOAT(StackOption=True)
             else:
                 exit(32)#todo check if exit code is correct            
 
@@ -370,8 +380,13 @@ class Instructions:
                 exit(53)
         elif(newVarType == "nil"):
             return newVarValue
+        elif(newVarType == "float"):
+            try:
+                newVarValue = float.fromhex(str(newVarValue))
+            except ValueError:
+                exit(53)
         else:
-            exit(53)
+            exit(53)# todo nemela by tady byt chyba 32?
         return newVarValue
     
     def GetSymbVars(self, numOfSymb, StacOption = False):
@@ -425,6 +440,11 @@ class Instructions:
         # string
         if(self.Instructions[i].args[numOfArg].type == "string"):
             symbVal = self.ConvertStringLiterals(str(symbVal))
+        if(self.Instructions[i].args[numOfArg].type == "float"):
+            try:
+                symbVal = float.fromhex(str(symbVal))
+            except ValueError:
+                exit(53)
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
         Symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
         return Symb
@@ -602,11 +622,14 @@ class Instructions:
             symb1, symb2 = symb2, symb1
         
         # check if symb1 and symb2 are both int types
-        if(symb1.type != "int" or symb2.type != "int"):
-            exit(53)
-        else: # set new value to the variable
+        if(symb1.type == "int" and symb2.type == "int"):
             value = int(symb1.value) + int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
+        elif(symb1.type == "float" and symb2.type == "float"):
+            value = float(symb1.value) + float(symb2.value)
+            self.SetHandler(self.GetVarName(0, StackOption), "float", float.hex(value), StackOption)
+        else: # set new value to the variable
+            exit(53)
 
     
     def SUB(self, StackOption = False):
@@ -615,14 +638,18 @@ class Instructions:
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
-            
+
         # check if symb1 and symb2 are both int types
-        if(symb1.type != "int" or symb2.type != "int"):
-            exit(53)
-        else:
+        if(symb1.type == "int" and symb2.type == "int"):
             #todo check if i should not put here try except
             value = int(symb1.value) - int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
+        elif(symb1.type == "float" and symb2.type == "float"):
+            value = float(symb1.value) - float(symb2.value)
+            self.SetHandler(self.GetVarName(0, StackOption), "float", float.hex(value), StackOption)
+        else:
+            exit(53)
+            
               
     def MUL(self, StackOption = False):
         symb1 = self.GetSymbVars(1, StackOption)
@@ -630,13 +657,17 @@ class Instructions:
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both int types
-        if(symb1.type != "int" or symb2.type != "int"):
-            exit(53)
-        else:
+        if(symb1.type == "int" and symb2.type == "int"):
             #todo check if i should not put here try except
             value = int(symb1.value) * int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
+        elif(symb1.type == "float" and symb2.type == "float"):
+            value = float(symb1.value) * float(symb2.value)
+            self.SetHandler(self.GetVarName(0, StackOption), "float", float.hex(value), StackOption)
+        else:
+            exit(53)
             
     def IDIV(self, StackOption = False):
         symb1 = self.GetSymbVars(1, StackOption)
@@ -653,6 +684,22 @@ class Instructions:
             #todo check if i should not put here try except
             value = int(symb1.value) // int(symb2.value)# shouldnt be there only / ?
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
+            
+    def DIV(self, StackOption = False):
+        symb1 = self.GetSymbVars(1, StackOption)
+        symb2 = self.GetSymbVars(2, StackOption)
+
+        if(StackOption):
+            symb1, symb2 = symb2, symb1
+        # check if symb1 and symb2 are both int types
+        if(symb1.type != "float" or symb2.type != "float"):
+            exit(53)
+        elif(float(symb2.value) == 0):
+            exit(57)
+        else:
+            #todo check if i should not put here try except
+            value = float(symb1.value) / float(symb2.value)
+            self.SetHandler(self.GetVarName(0, StackOption), "float", value, StackOption)
 #     LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno
 # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo
 # string) a do ⟨var⟩ zapíše výsledek typu bool (false při neplatnosti nebo true v případě platnosti
@@ -685,6 +732,11 @@ class Instructions:
                     value = "true"
                 else:
                     value = "false"
+            elif(symb1.type == "float" and symb2.type == "float"):
+                if(float(symb1.value) < float(symb2.value)):
+                    value = "true"
+                else:
+                    value = "false"
             else:
                 exit(53)
                 
@@ -712,6 +764,11 @@ class Instructions:
                     value = "false"
             elif(symb1.type == "string" and symb2.type == "string"):
                 if(str(symb1.value) > str(symb2.value)):
+                    value = "true"
+                else:
+                    value = "false"
+            elif(symb1.type == "float" and symb2.type == "float"):
+                if(float(symb1.value) > float(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
@@ -747,6 +804,11 @@ class Instructions:
                     value = "false"
             elif(symb1.type == "nil" or symb2.type == "nil"):
                 if(symb1.type == symb2.type):
+                    value = "true"
+                else:
+                    value = "false"
+            elif(symb1.type == "float" and symb2.type == "float"):
+                if(float(symb1.value) == float(symb2.value)):
                     value = "true"
                 else:
                     value = "false"
@@ -882,6 +944,12 @@ class Instructions:
                 self.SetVariable(self.GetVarName(0), "bool", value)
             except ValueError:
                 self.SetVariable(self.GetVarName(0), "bool", "false")
+        elif(type == "float"):
+            try:
+                value = self.Input.readline().rstrip()
+                self.SetVariable(self.GetVarName(0), "float", value)
+            except ValueError:
+                self.SetVariable(self.GetVarName(0), "nil", "nil")
         else:
             exit(53)
         
@@ -928,6 +996,8 @@ class Instructions:
             print("false", end="")
         elif(symb1.type == "nil"):
             print("", end="")
+        elif(symb1.type == "float"):
+            print(float.hex(symb1.value), end="")
         else:
             print(symb1.value, end="")
     
@@ -1188,3 +1258,36 @@ class Instructions:
               
     def CLEARS(self):
         self.DataStack.Clears()
+    
+# FLOAT2INT ⟨var⟩ ⟨symb⟩ Převod desetinné hodnoty na celočíselnou (oseknutí)
+# Převede desetinnou hodnotu ⟨symb⟩ na celočíselnou oseknutím desetinné části a uloží
+# ji do ⟨var⟩.
+    def FLOAT2INT(self, StackOption = False):
+        symb = self.GetSymbVars(1, StackOption)
+        
+        if(symb.type != "float"):
+            exit(53)
+        
+        try:
+            value = int(symb.value)
+        except:
+            exit(57)
+        
+        self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
+
+        
+# INT2FLOAT ⟨var⟩ ⟨symb⟩ Převod celočíselné hodnoty na desetinnou
+# Převede celočíselnou hodnotu ⟨symb⟩ na desetinné číslo a uloží je do ⟨var⟩.
+    def INT2FLOAT(self, StackOption = False):
+        symb = self.GetSymbVars(1,StackOption)
+        
+        if(symb.type != "int"):
+            exit(53)
+        
+        try:
+            value = float.hex(float(symb.value))
+        except:
+            exit(57)
+        
+        self.SetHandler(self.GetVarName(0, StackOption), "float", value, StackOption)
+        
