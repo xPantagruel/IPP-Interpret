@@ -839,35 +839,43 @@ class Instructions:
     
     def READ(self): # todo i have to decide if the input is from file or console
         type = self.GetValue(1)
+        
+        try:
+            if(self.Input == "stdin"):
+                value = input()
+            else:
+                value = self.Input[0]
+                self.Input.pop(0)
+        except:
+            self.SetVariable(self.GetVarName(0), "nil", "nil")
+            return
+
+        
         if(type == "int"):
             try:
-                value = input()
-                self.SetVariable(self.GetVarName(0), "int", int(value))
-            except Exception:
+                self.SetVariable(self.GetVarName(0), "int", value)
+            except :
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "string"):
             try:
-                value = input()
                 self.SetVariable(self.GetVarName(0), "string", str(value))
-            except Exception:
+            except :
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
         elif(type == "bool"):# todo figure out if the input is not true shoudl i put in false or nil? 
             try:
-                value = input()
                 if(value.lower() == "true"):
                     value = "true"
                 else:
                     value = "false"
                 self.SetVariable(self.GetVarName(0), "bool", value)
-            except Exception:
+            except :
                 self.SetVariable(self.GetVarName(0), "bool", "false")
         elif(type == "float"):
             try:
-                value = input()
                 self.SetVariable(self.GetVarName(0), "float", value)
-            except Exception:
+            except :
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
         else:
             exit(53)
@@ -903,7 +911,6 @@ class Instructions:
 
     def WRITE(self):
         symb1 = self.GetSymbOrVar(0)
-        
         if(symb1.value == "true"):
             print("true", end="")
         elif(symb1.value == "false"):

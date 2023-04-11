@@ -5,6 +5,9 @@
 - otestovat BREAK
 - kouknout jestli by nemelo byt try: except Exception:
 - test #TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST
+- zrusit class interpret a prepsat to rovnou do instructions class 
+- zkontrolovat nazev interpret.py
+- vytvorit soubor pro rozsireni 
 
 TEST FAILURES:
     both/functionCalls

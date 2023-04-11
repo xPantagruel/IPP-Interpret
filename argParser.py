@@ -7,6 +7,7 @@
 
 import argparse
 import sys
+import os
 
 class ArgParse:
     def __init__(self):
@@ -31,12 +32,13 @@ class ArgParse:
             
         if self.args.input is not None:
             try:
-                sys.stdin = open(self.args.input, 'r')
+                self.input = [line.rstrip('\n') for line in open(self.args.input)]
+                # self.input = open(self.args.input, 'r')
+                
             except:
                 exit(11)
         else:
-            self.input = sys.stdin
-            
+            self.input = "stdin"           
 
     def GetSourceFile(self):
         return self.source
