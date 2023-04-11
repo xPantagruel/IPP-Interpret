@@ -20,7 +20,9 @@ class ArgParse:
         self.input = None
         self.inputFile = None
         self.source = None
-
+        
+    ##
+    # @brief Method for parsing arguments from command line
     def Parse(self):
         if self.args.source is None and self.args.input is None:
             exit(10)
@@ -42,12 +44,18 @@ class ArgParse:
         else: # if input is not specified, use stdin
             self.input = "stdin"           
 
+    ##
+    # @brief Method for getting source file
     def GetSourceFile(self):
         return self.source
 
+    ##
+    # @brief Method for getting input file
     def GetInputFile(self):
         return self.input
 
+    ##
+    # @brief Method for closing files
     def CloseF(self):
         try:
             self.source.close()

@@ -1,12 +1,3 @@
-- test frames (local frame)
-- prepsat int kontrolu jako regex -> bude stacit CheckType(var, expected type) -> kluci maji try catch
-- podivat se pokud xml bude na stdin zda to bude fungovat
-- test read pokud bude input file nebo stdin
-- otestovat BREAK
-- kouknout jestli by nemelo byt try: except Exception:
-- test #TODO FIX THIS IN README NOTE THAT I SHOULD POP BACK THE WHOLE LIST
-- zrusit class interpret a prepsat to rovnou do instructions class 
-- zkontrolovat nazev interpret.py
 - vytvorit soubor pro rozsireni 
 
 TEST FAILURES:

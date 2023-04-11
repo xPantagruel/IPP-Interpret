@@ -20,11 +20,13 @@ class Argument:
         
 ##
 # @brief Class for parsing XML file and creating list of instructions
-class InstructionParser:
+class XmlParser:
     def __init__(self, source):
         self.source = source
         self.instructions = []
 
+    ##
+    # @brief Method for parsing XML file and creating list of instructions
     def parse(self):
         try:
             tree = ET.parse(self.source)
@@ -65,6 +67,14 @@ class InstructionParser:
                     
                 argType = argElement.get('type')
                 argValue = argElement.text
+
+                # check if the int arg type is valid
+                if argType =="int":
+                    try:
+                        argValue = int(argValue)
+                    except:
+                        exit(32)
+                    
                 argNumber = int(argElement.tag[3:])
                 instrArgs.append((argNumber, Argument(argType, argValue)))
 
@@ -86,7 +96,9 @@ class InstructionParser:
             
             instr = Instr(instr_order, instr_opcode.upper(), instrArgs)
             self.instructions.append(instr)
-        
+    
+    ##
+    # @brief Returns list of instructions
     def GetInstructions(self):
         self.instructions.sort(key=lambda x: x.order)
         

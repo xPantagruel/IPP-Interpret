@@ -6,7 +6,7 @@
 ##########
 
 import sys
-from xmlParser import InstructionParser
+from xmlParser import XmlParser
 from argParser import ArgParse
 
 ##
@@ -80,7 +80,7 @@ class Interpret():
         self.ArgsParser.Parse()
         
         # create an instance of the InstructionParser class and parse the source XML file
-        self.xmlParser = InstructionParser(self.ArgsParser.GetSourceFile())
+        self.xmlParser = XmlParser(self.ArgsParser.GetSourceFile())
         self.xmlParser.parse()
         
         # get the instructions from the InstructionParser
@@ -275,10 +275,16 @@ class Instructions:
 
             self.NumOfInstr += 1
 #----------------------------------------------------------------------------------------------------------
+    ##
+    # @brief  Check if number of arguments is correct
     def NumOfArgCheck(self, numOfArgs):
         if(len(self.Instructions[self.NumOfInstr].args) != numOfArgs):
             exit(32) 
             
+    ##
+    # @brief  Check if variable is defined and return variable
+    # @param  varName Name of variable
+    # @param  IsInicialized Check if variable is inicialized
     def GetVariable(self, varName, IsInicialized=True ):
         if(varName[0:3] == "GF@"):# check if variable is global
             for i in range(len(self.GlobalFrameList)):
@@ -312,7 +318,10 @@ class Instructions:
                     return self.TemporaryFrame[i]
                 
         exit(54)
-    
+    ##
+    # @brief  Set variable value and type in correct frame
+    # @param  varName Name of variable
+    # @param  newVarType Type of variable
     def SetVariable(self,varName, newVarType, newVarValue ):
         if(varName[0:3] == "GF@"):# check if variable is global
             for i in range(len(self.GlobalFrameList)):
@@ -354,7 +363,9 @@ class Instructions:
             
         exit(54)
             
-    # check if variable exists
+    ##
+    # @brief  Check if variable is defined
+    # @param  VarName Name of variable 
     def VarExistsCheck(self, VarName):
         if(VarName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
@@ -380,6 +391,10 @@ class Instructions:
             
         exit(54)
         
+    ##
+    # @brief  Check if variable is inicialized
+    # @param  newVarValue Name of variable
+    # @param  newVarType Type of variable
     def ChangeVarType(self, newVarType, newVarValue):
         if(newVarType == "bool"):
             if(newVarValue == "true"):
@@ -413,8 +428,10 @@ class Instructions:
     
     ##
     # @brief Get value of variable or symbol depends on argument type
-    def GetSymbOrVar(self, numOfSymb, StacOption = False):
-        if(StacOption):
+    # @param numOfSymb Number of argument
+    # @param StackOption If true get value from stack
+    def GetSymbOrVar(self, numOfSymb, StackOption = False):
+        if(StackOption):
             symb = self.DataStack.pop()
         else:            
             symbType = self.GetType(numOfSymb)
@@ -428,19 +445,23 @@ class Instructions:
         return symb
 
     ##
-    # @brief Get type of argument depends on number numOfArg
+    # @brief Get type of argument 
+    # @param numOfArg Number of argument
     def GetType(self, numOfArg):
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].type
     
     ##
-    # @brief Get value of argument depends on number numOfArg
+    # @brief Get value of argument 
+    # @param numOfArg Number of argument
     def GetValue(self, numOfArg):
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].value
     
     ##
-    # @brief Get name of variable depends on number numOfArg
+    # @brief Get name of variable 
+    # @param numOfArg Number of argument
+    # @param StackOption If true return None
     def GetVarName(self,numOfArg, StackOption = False):
         if(StackOption):
             return None
@@ -448,7 +469,8 @@ class Instructions:
         return self.Instructions[i].args[numOfArg].value
     
     ##
-    # @brief Create a symbol from argument depends on number numOfArg
+    # @brief Create a symbol from argument and return it
+    # @param numOfArg Number of argument
     def GetSymb(self, numOfArg):
         i = self.NumOfInstr
         symbVal = self.Instructions[i].args[numOfArg].value
@@ -456,20 +478,28 @@ class Instructions:
         if(symbVal == None):# empty symb
             return Variable("Symb", self.Instructions[i].args[numOfArg].type)
         
-        if(self.Instructions[i].args[numOfArg].type == "string"):
-            symbVal = self.ConvertStringLiterals(str(symbVal))
+        if(self.Instructions[i].args[numOfArg].type == "string"):# convert string literals
+            try:
+                symbVal = self.ConvertStringLiterals(str(symbVal))
+            except :
+                exit(32)
             
-        if(self.Instructions[i].args[numOfArg].type == "float"):
+        if(self.Instructions[i].args[numOfArg].type == "float"):# convert float literals
             try:
                 symbVal = float.fromhex(str(symbVal))
             except :
                 exit(53)
+        # change and validate type
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
         symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
         return symb
     
     ##
-    # @brief method handle if instruction is stack option or not
+    # @brief method handle if instruction is stack option or not and return arguments of isntruction
+    # @param VarName Name of variable
+    # @param Type Type of variable
+    # @param Value Value of variable
+    # @param StackOption If true push variable to stack
     def SetHandler(self, VarName = None, Type = None, Value = None, StackOption = False):
         if(StackOption == True):
             self.DataStack.push(Variable(VarName, Type, Value))
@@ -483,7 +513,10 @@ class Instructions:
             self.VarExistsCheck(self.GetValue(0))
 
             if(self.GetType(1) == "string"):
-                value = self.ConvertStringLiterals(str(self.GetValue(1)))
+                try:
+                    value = self.ConvertStringLiterals(str(self.GetValue(1)))
+                except:
+                    exit(53)
             else:
                 value = self.GetValue(1)
             # copy to var symb value and type
@@ -603,8 +636,6 @@ class Instructions:
             VarPop = self.DataStack.pop()
             self.SetVariable(instr.args[0].value, VarPop.type, VarPop.value)
             
-    # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ 
-    # int check
     def ADD(self, StackOption = False):
         symb1 = self.GetSymbOrVar(1, StackOption)
         symb2 = self.GetSymbOrVar(2, StackOption)
@@ -1007,6 +1038,7 @@ class Instructions:
         
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both string types
         if(symb1.type != "string" or symb2.type != "int"):
             exit(53)
