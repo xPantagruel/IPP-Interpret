@@ -1,12 +1,16 @@
-######
-# File name: core.py
-# Description: Projekt 2 do predmetu IPP 2023, FIT VUT
-# Athor: Matěj Macek (xmacek27)
+##########
+# File name: Core.py
+# Description: Project 2 IPP 2023, FIT VUT
+# Author: Matěj Macek (xmacek27)
 # Date: 10.04.2023
-######
+##########
 
 import sys
+from xmlParser import InstructionParser
+from argParser import ArgParse
 
+##
+#   @brief Class Stack is the class that implements the stack data structure
 class Stack:
     def __init__(self):
         self.items = []
@@ -28,6 +32,8 @@ class Stack:
     def Clears(self):
         self.items = []
 
+##
+#   @brief Class Variable is the class that implements the variable data structure
 class Variable:
     def __init__(self, name, type=None, value=None, isInicialized=False):
         self.name = name
@@ -35,20 +41,25 @@ class Variable:
         self.value = value
         self.isInicialized = isInicialized
 
+##
+#   @brief Class Frame is the class that implements the frame data structure
 class Label:
     def __init__(self, name, value,row):
         self.name = name
         self.value = value
         self.row = row
-#------------------------------- Class Interpret --------------------------------
-class Interpret():# todo jestli tohle nezrusit a nezavolat jen instanci Insstructions v mainu
-    def __init__(self, Instructions, InputType=sys.stdin):
-        self.Instructions = Instructions
+        
+##
+#   @brief Class Interpret is the main class of the program. 
+class Interpret():
+    def __init__(self):
+        self.Instructions = None
         self.LabelList = []
-        self.InputT = InputType
+        self.ArgsParser = None
+        self.xmlParser = None
     
+    ## initialize label list and check if label is defined
     def InitializateLabelList(self): 
-        # initialize label list and check if label is defined
         for i in range(len(self.Instructions)):
             if self.Instructions[i].opcode == "LABEL":
                 for j in range(len(self.LabelList)):
@@ -56,14 +67,35 @@ class Interpret():# todo jestli tohle nezrusit a nezavolat jen instanci Insstruc
                         exit(52)
                 
                 self.LabelList.append(Label(self.Instructions[i].args[0].value, self.Instructions[i].args[0].value, i-1))
+                
+    ## 
+    # @brief Create an instance of the ArgParse class and parse the command-line argument
+    #        Create an instance of the InstructionParser class and parse the source XML file   
+    #        Get the instructions from the InstructionParser
+    #        Create instance of class Instructions Execute instructions from list of instructions
+    ##
+    def Run(self):
+        # create an instance of the ArgParse class and parse the command-line argument
+        self.ArgsParser = ArgParse()
+        self.ArgsParser.Parse()
         
-    def Interpretation(self):
+        # create an instance of the InstructionParser class and parse the source XML file
+        self.xmlParser = InstructionParser(self.ArgsParser.GetSourceFile())
+        self.xmlParser.parse()
+        
+        # get the instructions from the InstructionParser
+        self.Instructions = self.xmlParser.GetInstructions()
+    
         self.InitializateLabelList()
+        
         # create instance of class Instructions
-        Instr = Instructions(self.Instructions, self.LabelList, self.InputT)
+        Instr = Instructions(self.Instructions, self.LabelList, self.ArgsParser.GetInputFile())
         Instr.Execution()
+        
+        self.ArgsParser.CloseF()
 
-#------------------------------- Class Instructions --------------------------------
+##
+#   @brief  Class Instructions is the class that executes instructions from list of instructions
 class Instructions:
     def __init__(self, Instructions, LabelList, InputType=sys.stdin):
         self.LabelList = LabelList
@@ -72,18 +104,19 @@ class Instructions:
         self.FrameType = "none"
         self.DataStack = Stack()
         self.CallStack = Stack()
-        self.TemporaryFrames = None
+        self.TemporaryFrame = None
         self.LocalFramesStack = Stack()
         self.NumOfInstr = 0
         self.Input = InputType
     
-    # execute instructions from list of instructions
+    ##
+    # @brief    Check if the number of arguments is correct.If the number of arguments is incorrect, the 
+    #           program exits with code 32. This method calls the appropriate method to execute instruction.
     def Execution(self):
         while self.NumOfInstr < len(self.Instructions):
-            # print("self." + self.Instructions[self.NumOfInstr].opcode + "()")
             Instr=self.Instructions[self.NumOfInstr].opcode
             
-            # create switch case
+            # switch case for calling instructions method with StackOption parameter
             if Instr == "MOVE":
                 self.NumOfArgCheck(2)
                 self.MOVE()
@@ -271,12 +304,12 @@ class Instructions:
             if(self.FrameType != "TF"):
                 exit(55)
                 
-            for i in range(len(self.TemporaryFrames)):
-                if(self.TemporaryFrames[i].name == varName):
+            for i in range(len(self.TemporaryFrame)):
+                if(self.TemporaryFrame[i].name == varName):
                     if(IsInicialized):
-                        if(self.TemporaryFrames[i].isInicialized == False):# check if variable is defined
+                        if(self.TemporaryFrame[i].isInicialized == False):# check if variable is defined
                             exit(56)
-                    return self.TemporaryFrames[i]
+                    return self.TemporaryFrame[i]
                 
         exit(54)
     
@@ -286,7 +319,7 @@ class Instructions:
                 if(self.GlobalFrameList[i].name == varName):
                     self.GlobalFrameList[i].type = newVarType
                     self.GlobalFrameList[i].value = self.ChangeVarType(newVarType, newVarValue)
-                    if(self.GlobalFrameList[i].isInicialized == False): # nastaveni inicializace
+                    if(self.GlobalFrameList[i].isInicialized == False): # set inicialization
                         self.GlobalFrameList[i].isInicialized = True
                     return  
                           
@@ -299,7 +332,7 @@ class Instructions:
                 if(TopList[i].name == varName):
                     TopList[i].type = newVarType
                     TopList[i].value = self.ChangeVarType(newVarType, newVarValue)
-                    if(TopList[i].isInicialized == False):
+                    if(TopList[i].isInicialized == False):# set inicialization
                         TopList[i].isInicialized = True
                     self.LocalFramesStack.pop()
                     self.LocalFramesStack.push(TopList)
@@ -309,18 +342,19 @@ class Instructions:
             if(self.FrameType != "TF"):
                 exit(55)
                 
-            for i in range(len(self.TemporaryFrames)):
-                if(self.TemporaryFrames[i].name == varName):
-                    self.TemporaryFrames[i].value = self.ChangeVarType(newVarType, newVarValue)
-                    self.TemporaryFrames[i].type = newVarType
-                    if(self.TemporaryFrames[i].isInicialized == False):
-                        self.TemporaryFrames[i].isInicialized = True
+            for i in range(len(self.TemporaryFrame)):
+                if(self.TemporaryFrame[i].name == varName):
+                    self.TemporaryFrame[i].value = self.ChangeVarType(newVarType, newVarValue)
+                    self.TemporaryFrame[i].type = newVarType
+                    if(self.TemporaryFrame[i].isInicialized == False):# set inicialization
+                        self.TemporaryFrame[i].isInicialized = True
                     return
         else:
             exit(54)
             
         exit(54)
             
+    # check if variable exists
     def VarExistsCheck(self, VarName):
         if(VarName[0:3] == "GF@"):
             for i in range(len(self.GlobalFrameList)):
@@ -338,8 +372,8 @@ class Instructions:
         elif(VarName[0:3] == "TF@"):
             if(self.FrameType != "TF"):
                 exit(55)
-            for i in range(len(self.TemporaryFrames)):
-                if(self.TemporaryFrames[i].name == VarName):
+            for i in range(len(self.TemporaryFrame)):
+                if(self.TemporaryFrame[i].name == VarName):
                     return
         else:
             exit(54)
@@ -377,6 +411,8 @@ class Instructions:
             exit(53)
         return newVarValue
     
+    ##
+    # @brief Get value of variable or symbol depends on argument type
     def GetSymbOrVar(self, numOfSymb, StacOption = False):
         if(StacOption):
             symb = self.DataStack.pop()
@@ -391,20 +427,28 @@ class Instructions:
                 exit(53)    
         return symb
 
+    ##
+    # @brief Get type of argument depends on number numOfArg
     def GetType(self, numOfArg):
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].type
     
+    ##
+    # @brief Get value of argument depends on number numOfArg
     def GetValue(self, numOfArg):
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].value
     
+    ##
+    # @brief Get name of variable depends on number numOfArg
     def GetVarName(self,numOfArg, StackOption = False):
         if(StackOption):
             return None
         i = self.NumOfInstr
         return self.Instructions[i].args[numOfArg].value
     
+    ##
+    # @brief Create a symbol from argument depends on number numOfArg
     def GetSymb(self, numOfArg):
         i = self.NumOfInstr
         symbVal = self.Instructions[i].args[numOfArg].value
@@ -421,9 +465,11 @@ class Instructions:
             except :
                 exit(53)
         symbVal = self.ChangeVarType(self.Instructions[i].args[numOfArg].type, symbVal)
-        Symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
-        return Symb
+        symb = Variable("Symb", self.Instructions[i].args[numOfArg].type, symbVal)
+        return symb
     
+    ##
+    # @brief method handle if instruction is stack option or not
     def SetHandler(self, VarName = None, Type = None, Value = None, StackOption = False):
         if(StackOption == True):
             self.DataStack.push(Variable(VarName, Type, Value))
@@ -454,30 +500,31 @@ class Instructions:
         
     def CREATEFRAME(self):
         # zahodí případný obsah původního dočasného rámce vytvoří nový dočasný rámec
-        self.TemporaryFrames = []
+        self.TemporaryFrame = []
         self.FrameType = "TF"
 
     def PUSHFRAME(self):
         if(self.FrameType != "TF"):
             exit(55)
+            
         # I need to change TF@ to LF@ and then push it to the stack
-        for i in range(len(self.TemporaryFrames)):
-            self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("TF@", "LF@")            
+        for i in range(len(self.TemporaryFrame)):
+            self.TemporaryFrame[i].name = self.TemporaryFrame[i].name.replace("TF@", "LF@")            
 
-        self.LocalFramesStack.push(self.TemporaryFrames)
+        self.LocalFramesStack.push(self.TemporaryFrame)
         self.FrameType = "LF"
             
     def POPFRAME(self):
         if(self.LocalFramesStack.IsEmpty() and self.FrameType != "TF"):
             exit(55)
         else:
-            self.TemporaryFrames = self.LocalFramesStack.pop()
+            self.TemporaryFrame = self.LocalFramesStack.pop()
             self.FrameType = "TF"
             
         # replace LF@ to TF@
-        if(self.TemporaryFrames != None):
-            for i in range(len(self.TemporaryFrames)):
-                self.TemporaryFrames[i].name = self.TemporaryFrames[i].name.replace("LF@", "TF@")
+        if(self.TemporaryFrame != None):
+            for i in range(len(self.TemporaryFrame)):
+                self.TemporaryFrame[i].name = self.TemporaryFrame[i].name.replace("LF@", "TF@")
         else:
             exit(55)
             
@@ -508,17 +555,16 @@ class Instructions:
             self.LocalFramesStack.pop()
             self.LocalFramesStack.push(TopList)
 
-
         # case 3 - var@TF
         elif(VarName[0:3] == "TF@" and self.FrameType == "TF"):
-            if(self.TemporaryFrames == None):
+            if(self.TemporaryFrame == None):
                 exit(55)
             # check if var is already defined
-            for i in range(len(self.TemporaryFrames)):
-                if(self.TemporaryFrames[i].name == VarName):
+            for i in range(len(self.TemporaryFrame)):
+                if(self.TemporaryFrame[i].name == VarName):
                     exit(52)
             else:
-                self.TemporaryFrames.append(Variable(VarName))
+                self.TemporaryFrame.append(Variable(VarName))
         else:
             exit(55)
 
@@ -541,12 +587,12 @@ class Instructions:
               
     def PUSHS(self):
         instr = self.Instructions[self.NumOfInstr]
-        # check if its variable(call function to get variable) or symbol
         if(instr.args[0].type == "var"):
             var = self.GetVariable(self.GetVarName(0))
             self.DataStack.push(var)
         else:
-            symb = Variable("Symb",instr.args[0].type, instr.args[0].value )# the name is not crucial becouse it doesnt change anything "Symb"
+            # the name is not crucial becouse it doesnt change anything "Symb"
+            symb = Variable("Symb",instr.args[0].type, instr.args[0].value )
             self.DataStack.push(symb) 
             
     def POPS(self):
@@ -576,7 +622,6 @@ class Instructions:
         else: # set new value to the variable
             exit(53)
 
-    
     def SUB(self, StackOption = False):
         symb1 = self.GetSymbOrVar(1, StackOption)
         symb2 = self.GetSymbOrVar(2, StackOption)
@@ -586,7 +631,6 @@ class Instructions:
 
         # check if symb1 and symb2 are both int types
         if(symb1.type == "int" and symb2.type == "int"):
-            #todo check if i should not put here try except
             value = int(symb1.value) - int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
         elif(symb1.type == "float" and symb2.type == "float"):
@@ -595,7 +639,6 @@ class Instructions:
         else:
             exit(53)
             
-              
     def MUL(self, StackOption = False):
         symb1 = self.GetSymbOrVar(1, StackOption)
         symb2 = self.GetSymbOrVar(2, StackOption)
@@ -605,7 +648,6 @@ class Instructions:
             
         # check if symb1 and symb2 are both int types
         if(symb1.type == "int" and symb2.type == "int"):
-            #todo check if i should not put here try except
             value = int(symb1.value) * int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
         elif(symb1.type == "float" and symb2.type == "float"):
@@ -620,14 +662,14 @@ class Instructions:
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both int types
         if(symb1.type != "int" or symb2.type != "int"):
             exit(53)
         elif(int(symb2.value) == 0):
             exit(57)
         else:
-            #todo check if i should not put here try except
-            value = int(symb1.value) // int(symb2.value)# todo shouldnt be there only / ?
+            value = int(symb1.value) // int(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
             
     def DIV(self, StackOption = False):
@@ -636,13 +678,13 @@ class Instructions:
 
         if(StackOption):
             symb1, symb2 = symb2, symb1
+            
         # check if symb1 and symb2 are both int types
         if(symb1.type != "float" or symb2.type != "float"):
             exit(53)
         elif(float(symb2.value) == 0):
             exit(57)
         else:
-            #todo check if i should not put here try except
             value = float(symb1.value) / float(symb2.value)
             self.SetHandler(self.GetVarName(0, StackOption), "float", value, StackOption)
 
@@ -837,9 +879,10 @@ class Instructions:
         value = ord(symb1.value[int(symb2.value)])
         self.SetHandler(self.GetVarName(0, StackOption), "int", value, StackOption)
     
-    def READ(self): # todo i have to decide if the input is from file or console
+    def READ(self):
         type = self.GetValue(1)
         
+        # get the input depends on type of Input from argumentParser
         try:
             if(self.Input == "stdin"):
                 value = input()
@@ -849,8 +892,8 @@ class Instructions:
         except:
             self.SetVariable(self.GetVarName(0), "nil", "nil")
             return
-
         
+        # check if the input is correct and set the variable
         if(type == "int"):
             try:
                 self.SetVariable(self.GetVarName(0), "int", value)
@@ -863,7 +906,7 @@ class Instructions:
             except :
                 self.SetVariable(self.GetVarName(0), "nil", "nil")
                 
-        elif(type == "bool"):# todo figure out if the input is not true shoudl i put in false or nil? 
+        elif(type == "bool"):
             try:
                 if(value.lower() == "true"):
                     value = "true"
@@ -1139,7 +1182,7 @@ class Instructions:
         try:
             print("NumOfInstr: ", self.NumOfInstr, file=sys.stderr)
             print("GlobalFrameList: ", self.GlobalFrameList, file=sys.stderr)
-            print("TempFrameList: ", self.TemporaryFrames, file=sys.stderr)
+            print("TempFrameList: ", self.TemporaryFrame, file=sys.stderr)
             print("CallStack: ", self.CallStack, file=sys.stderr)
             print("DataStack: ", self.DataStack, file=sys.stderr)
             print("LabelList: ", self.LabelList, file=sys.stderr)

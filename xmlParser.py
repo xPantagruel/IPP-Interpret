@@ -1,9 +1,9 @@
-######
+##########
 # File name: xmlParser.py
-# Description: Projekt 2 do predmetu IPP 2023, FIT VUT
-# Athor: Matěj Macek (xmacek27)
+# Description: Project 2 IPP 2023, FIT VUT
+# Author: Matěj Macek (xmacek27)
 # Date: 10.04.2023
-######
+##########
 
 import xml.etree.ElementTree as ET
 
@@ -14,10 +14,12 @@ class Instr:
         self.args = args
 
 class Argument:
-    def __init__(self, arg_type, arg_value):
-        self.type = arg_type
-        self.value = arg_value
+    def __init__(self, argType, argValue):
+        self.type = argType
+        self.value = argValue
         
+##
+# @brief Class for parsing XML file and creating list of instructions
 class InstructionParser:
     def __init__(self, source):
         self.source = source
@@ -35,36 +37,36 @@ class InstructionParser:
         if(root.attrib['language'].upper() != 'IPPcode23'.upper()):
             exit(32)
             
-        for instr_element in root:
+        for instrElement in root:
             arg1=arg2=arg3 = 0
-            if instr_element.tag != 'instruction' or root.tag != 'program' :
+            if instrElement.tag != 'instruction' or root.tag != 'program' :
                 exit(32)
             
             try:    
-                instr_order = int(instr_element.get('order'))
-                instr_opcode = str(instr_element.get('opcode'))
+                instr_order = int(instrElement.get('order'))
+                instr_opcode = str(instrElement.get('opcode'))
             except:
                 exit(32)
             
-            instr_args = []
-            for arg_element in instr_element:
+            instrArgs = []
+            for argElement in instrElement:
                 # check if the arg name is valid
-                if arg_element.tag != 'arg1' and arg_element.tag != 'arg2' and arg_element.tag != 'arg3' :
+                if argElement.tag != 'arg1' and argElement.tag != 'arg2' and argElement.tag != 'arg3' :
                     exit(32)
                     
-                if arg_element.tag == 'arg1':
+                if argElement.tag == 'arg1':
                     arg1 += 1 
-                elif arg_element.tag == 'arg2':
+                elif argElement.tag == 'arg2':
                     arg2 += 1 
-                elif arg_element.tag == 'arg3':
+                elif argElement.tag == 'arg3':
                     arg3 += 1 
                 else:
                     exit(32)
                     
-                arg_type = arg_element.get('type')
-                arg_value = arg_element.text
-                arg_number = int(arg_element.tag[3:])
-                instr_args.append((arg_number, Argument(arg_type, arg_value)))
+                argType = argElement.get('type')
+                argValue = argElement.text
+                argNumber = int(argElement.tag[3:])
+                instrArgs.append((argNumber, Argument(argType, argValue)))
 
             # check arg numbers
             if(arg3 > 1 or arg2 > 1 or arg1 > 1):
@@ -79,13 +81,13 @@ class InstructionParser:
                 exit(32)
                 
             # sort the arguments by their number
-            instr_args.sort(key=lambda x: x[0])
-            instr_args = [arg[1] for arg in instr_args]
+            instrArgs.sort(key=lambda x: x[0])
+            instrArgs = [arg[1] for arg in instrArgs]
             
-            instr = Instr(instr_order, instr_opcode.upper(), instr_args)
+            instr = Instr(instr_order, instr_opcode.upper(), instrArgs)
             self.instructions.append(instr)
         
-    def get_instructions(self):
+    def GetInstructions(self):
         self.instructions.sort(key=lambda x: x.order)
         
         # check if there are no duplicate orders or no negative, 0 orders
@@ -95,5 +97,4 @@ class InstructionParser:
                 exit(32)
             orders.append(instr.order)
         
-            
         return self.instructions
