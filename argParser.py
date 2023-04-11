@@ -16,6 +16,7 @@ class ArgParse:
         self.parser.add_argument('--input', help='Soubor se vstupy pro interpretaci zadaného zdrojového kódu.')
         self.args = self.parser.parse_args()
         self.input = None
+        self.inputFile = None
         self.source = None
 
     def run(self):
@@ -32,7 +33,8 @@ class ArgParse:
             
         if self.args.input is not None:
             try:
-                self.input = [line.rstrip('\n') for line in open(self.args.input)]
+                self.inputFile = open(self.args.input, 'r')
+                self.input = [line.rstrip('\n') for line in self.inputFile]
                 # self.input = open(self.args.input, 'r')
                 
             except:
@@ -47,5 +49,9 @@ class ArgParse:
         return self.input
 
     def CloseF(self):
-        self.source.close()
-        # self.input.close()
+        try:
+            self.source.close()
+            if self.inputFile is not None:
+                self.inputFile.close()
+        except:
+            pass 

@@ -1135,13 +1135,16 @@ class Instructions:
         else:
             exit(57)        
 
-    def BREAK(self):# todo test it
-        print("NumOfInstr: ", self.NumOfInstr, file=sys.stderr)
-        print("GlobalFrameList: ", self.GlobalFrameList, file=sys.stderr)
-        print("TempFrameList: ", self.TemporaryFrames, file=sys.stderr)
-        print("CallStack: ", self.CallStack, file=sys.stderr)
-        print("DataStack: ", self.DataStack, file=sys.stderr)
-        print("LabelList: ", self.LabelList, file=sys.stderr)
+    def BREAK(self):
+        try:
+            print("NumOfInstr: ", self.NumOfInstr, file=sys.stderr)
+            print("GlobalFrameList: ", self.GlobalFrameList, file=sys.stderr)
+            print("TempFrameList: ", self.TemporaryFrames, file=sys.stderr)
+            print("CallStack: ", self.CallStack, file=sys.stderr)
+            print("DataStack: ", self.DataStack, file=sys.stderr)
+            print("LabelList: ", self.LabelList, file=sys.stderr)
+        except:
+            pass
 
     def DPRINT(self) :
         symb = self.GetSymbOrVar(0)
